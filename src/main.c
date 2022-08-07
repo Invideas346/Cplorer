@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <conio.h>
 
 #include "ascii_table.h"
 #include "dir_handler.h"
@@ -19,12 +20,12 @@ int main()
     while (!should_close)
     {
         /* get console input */
-        uint8_t input = fgetc(stdin);
+        uint8_t input = _getch();
 
         /* switch - determine the input and act on it */
         switch (input)
         {
-        case ESC:
+        case C_UPPER:
             should_close = true;
             break;
 
@@ -48,6 +49,10 @@ int main()
             break;
         }
         /* end switch - determine the input and act on it */
+
+        // render_parent_tree();
+        // render_current_tree();
+        // render_preview();
     }
     /* end while - application loop */
     return 0;

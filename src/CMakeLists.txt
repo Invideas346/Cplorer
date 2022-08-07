@@ -7,6 +7,8 @@ set(SOURCE_FILE
         file_handler.h
         typedef.h
         dir_handler.c
-        dir_handler.h)
+        dir_handler.h
+        input.c
+        input.h)
 
 add_executable(${PROJECT_NAME} ${SOURCE_FILE})

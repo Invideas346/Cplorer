@@ -109,8 +109,8 @@ enum ascii_table
     // misc characters
 
     BRACKET_OPEN,   // [
-    SLASH_BACKWARD, // \
-	BRACKET_CLOSE,                                   // ]
+    SLASH_BACKWARD, //
+    BRACKET_CLOSE,  // ]
     CARET,          // ^
     UNDERSCORE,     // _
     GRAVE_ACCENT,   // `
