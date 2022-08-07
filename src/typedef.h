@@ -10,4 +10,4 @@
 #define true (uint8_t) 1
 #define false (uint8_t) 0
 
-#endif //CPLORER_TYPEDEF_H
+#endif // CPLORER_TYPEDEF_H
