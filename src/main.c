@@ -12,7 +12,6 @@
 #include <curses.h>
 #endif
 
-
 #include "ascii_table.h"
 #include "dir_handler.h"
 #include "file_handler.h"
@@ -25,6 +24,14 @@ int main()
 
     /* init ncurses */
     initscr();
+
+    uint32_t n;
+    char** files = NULL;
+    get_dir_content_str("../cmake-build-release", &files, &n);
+    for (int i = 0; i < n; ++i)
+    {
+        printw("%s\n", files[i]);
+    }
 
     /* while - application loop */
     while (!should_close)
