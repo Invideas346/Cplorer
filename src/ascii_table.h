@@ -5,7 +5,7 @@
 #ifndef CPLORER_ASCII_TABLE_H
 #define CPLORER_ASCII_TABLE_H
 
-enum ascii_table
+typedef enum ascii_table
 {
     // control characters
     _NULL, // NULL
@@ -302,6 +302,6 @@ enum ascii_table
     NUMBER_2_SUPERSCRIPT,     // ²
     BLACK_SQUARE,             // ■
     SPACE_NO_BREAK,           //
-};
+} ascii_table;
 
 #endif // CPLORER_ASCII_TABLE_H

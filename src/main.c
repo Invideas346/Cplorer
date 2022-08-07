@@ -11,44 +11,46 @@
 #include "dir_handler.h"
 #include "file_handler.h"
 #include "typedef.h"
+#include "input.h"
 
 int main()
 {
+    input input = init_input();
     uint8_t should_close = false;
 
     /* while - application loop */
     while (!should_close)
     {
         /* get console input */
-        uint8_t input = _getch();
+        fetch_input(&input);
 
-        /* switch - determine the input and act on it */
-        switch (input)
+        /* if - was h pressed */
+        if (key_pressed_input(&input, H_LOWER) || key_pressed_input(&input, H_UPPER))
         {
-        case C_UPPER:
             should_close = true;
-            break;
-
-        case H_UPPER:
-        case H_LOWER:
-            break;
-
-        case J_UPPER:
-        case J_LOWER:
-            break;
-
-        case K_UPPER:
-        case K_LOWER:
-            break;
-
-        case L_UPPER:
-        case L_LOWER:
-            break;
-
-        default:
-            break;
         }
-        /* end switch - determine the input and act on it */
+        /* end if - was h pressed */
+
+        /* if - was j pressed */
+        if (key_pressed_input(&input, J_LOWER) || key_pressed_input(&input, J_UPPER))
+        {
+            should_close = true;
+        }
+        /* end if - was j pressed */
+
+        /* end if - was k pressed */
+        if (key_pressed_input(&input, K_LOWER) || key_pressed_input(&input, K_UPPER))
+        {
+            should_close = true;
+        }
+        /* end if - was k pressed */
+
+        /* if - was l pressed */
+        if (key_pressed_input(&input, L_LOWER) || key_pressed_input(&input, L_UPPER))
+        {
+            should_close = true;
+        }
+        /* end if - was l pressed */
 
         // render_parent_tree();
         // render_current_tree();
