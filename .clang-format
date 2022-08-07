@@ -1,0 +1,14 @@
+Language: Cpp
+BasedOnStyle: LLVM
+BreakBeforeBraces: Allman
+ColumnLimit: '100'
+TabWidth: '4'
+IndentWidth: 4
+PointerAlignment: Left
+SortIncludes: 'false'
+SortUsingDeclarations: 'false'
+SpaceAfterCStyleCast: 'true'
+SpaceBeforeRangeBasedForLoopColon: 'true'
+SpaceInEmptyParentheses: 'false'
+PenaltyBreakComment: 1000000000
+NamespaceIndentation: All
