@@ -9,7 +9,8 @@
 #include "ascii_table.h"
 
 typedef struct input {
-    uint64_t* keys;
+    /* 4 * 64 = 256 (all ascii chars) */
+    uint64_t keys[4];
 } input;
 
 input init_input();

@@ -22,6 +22,8 @@ int main()
 {
     input input = init_input();
     uint8_t should_close = false;
+
+    /* init ncurses */
     initscr();
 
     /* while - application loop */
@@ -64,6 +66,7 @@ int main()
     }
     /* end while - application loop */
 
+    /* de-init ncurses */
     endwin();
     return 0;
 }
