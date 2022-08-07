@@ -7,16 +7,13 @@
 #include <stdlib.h>
 
 #include "ascii_table.h"
+#include "dir_handler.h"
 #include "file_handler.h"
 #include "typedef.h"
 
 int main()
 {
     uint8_t should_close = false;
-
-    char* content = get_file_preview_str("test_files/file.txt");
-    printf("%s\n", content);
-    free(content);
 
     /* while - application loop */
     while (!should_close)
