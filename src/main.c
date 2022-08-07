@@ -5,18 +5,24 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <conio.h>
+
+#if WIN32
+#include <ncurses/ncurses.h>
+#elif unix
+#include <curses.h>
+#endif
+
 
 #include "ascii_table.h"
 #include "dir_handler.h"
 #include "file_handler.h"
-#include "typedef.h"
 #include "input.h"
 
 int main()
 {
     input input = init_input();
     uint8_t should_close = false;
+    initscr();
 
     /* while - application loop */
     while (!should_close)
@@ -57,5 +63,7 @@ int main()
         // render_preview();
     }
     /* end while - application loop */
+
+    endwin();
     return 0;
 }

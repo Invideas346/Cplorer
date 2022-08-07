@@ -5,9 +5,9 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 #include "file_handler.h"
-#include "typedef.h"
 
 #define PREVIEW_SIZE UINT16_MAX
 

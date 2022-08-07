@@ -5,10 +5,13 @@ set(SOURCE_FILE
         ascii_table.h
         file_handler.c
         file_handler.h
-        typedef.h
         dir_handler.c
         dir_handler.h
         input.c
         input.h)
+
+find_package(Curses REQUIRED)
+include_directories(${CURSES_INCLUDE_DIR})
+link_libraries(${CURSES_LIBRARIES})
 
 add_executable(${PROJECT_NAME} ${SOURCE_FILE})
