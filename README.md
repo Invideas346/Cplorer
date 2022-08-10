@@ -10,6 +10,6 @@ sudo apt-get install libncurses5-dev libncursesw5-dev
 ```
 
 For Windows the ncurses library has to be compiled and added e.g. 
-to the libraries of the mingw compiler.
+to the lib-folder of the mingw compiler.
 
 Link to [PDCurses](https://github.com/wmcbrine/PDCurses)
