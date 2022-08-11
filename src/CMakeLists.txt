@@ -19,6 +19,9 @@ target_link_libraries(${PROJECT_NAME} input)
 add_library(fs_handler fs_handler.hpp fs_handler.cpp)
 target_link_libraries(${PROJECT_NAME} fs_handler)
 
+add_library(cli cli.hpp cli.cpp)
+target_link_libraries(${PROJECT_NAME} cli)
+
 target_link_libraries(${PROJECT_NAME} 
   Boost::boost
   Boost::random

@@ -56,4 +56,14 @@ namespace fs {
         SET_ERROR_CODE(ec, ERROR_CODE::NO_ERROR);
         return m_children;
     }
+
+    std::string get_file_content(const std::string& path, ERROR_CODE* ec)
+    {
+
+    }
+
+    std::string get_file_content(const boost::filesystem::path& path, ERROR_CODE* ec)
+    {
+
+    }
 }

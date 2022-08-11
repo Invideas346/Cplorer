@@ -18,6 +18,7 @@
 #include "ascii_table.hpp"
 #include "input.hpp"
 #include "fs_handler.hpp"
+#include "cli.hpp"
 
 int main(int argc, char** argv)
 {
@@ -26,6 +27,11 @@ int main(int argc, char** argv)
     std::string m_file_preview;
     boost::filesystem::directory_entry selected_entry;
     uint8_t should_close = false;
+
+    ui::component component;
+    component.attach_render_routine([]() -> void {
+
+    });
     
     input input = init_input();
 
@@ -38,7 +44,6 @@ int main(int argc, char** argv)
     /* get the content of the current and parent directory */
     content_current_dir = fs::get_dir_content(boost::filesystem::current_path());
     content_parent_dir = fs::get_dir_content(boost::filesystem::current_path().parent_path());
-    
     content_child_dir = fs::get_dir_content(selected_entry, &ec);
     if(ec == fs::ERROR_CODE::INVALID_ARGUMENT)
     {
