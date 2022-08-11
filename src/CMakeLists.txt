@@ -1,17 +1,34 @@
 cmake_minimum_required(VERSION 3.16.3)
 
 set(SOURCE_FILE
-        main.c
-        ascii_table.h
-        file_handler.c
-        file_handler.h
-        dir_handler.c
-        dir_handler.h
-        input.c
-        input.h)
+        main.cpp
+        ascii_table.hpp
+        file_handler.cpp
+        file_handler.hpp
+        dir_handler.cpp
+        dir_handler.hpp
+        input.cpp
+        input.hpp)
+
+# Find boost
+find_package(Boost REQUIRED COMPONENTS random system thread filesystem chrono atomic date_time regex)
 
 find_package(Curses REQUIRED)
 include_directories(${CURSES_INCLUDE_DIR})
 link_libraries(${CURSES_LIBRARIES})
 
 add_executable(${PROJECT_NAME} ${SOURCE_FILE})
+
+set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
+
+target_link_libraries(${PROJECT_NAME} 
+  Boost::boost
+  Boost::random
+  Boost::system
+  Boost::thread
+  Boost::filesystem
+  Boost::chrono
+  Boost::atomic
+  Boost::date_time
+  Boost::regex
+)

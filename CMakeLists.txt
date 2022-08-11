@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16.3)
-project(Cplorer C)
+project(Cplorer CXX)
 
 # Set the CMake compiler flags
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
