@@ -18,7 +18,7 @@ namespace ui
         component() = default;
         component(const render_func& fun);
 
-        void attach_render_routine(render_func fun);
+        void assign_render_routine(render_func fun);
         void render() const;
 
       private:

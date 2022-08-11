@@ -4,7 +4,7 @@ namespace ui
 {
     component::component(const render_func& func) : render_callback(func) {}
 
-    void component::attach_render_routine(render_func fun) { this->render_callback = fun; }
+    void component::assign_render_routine(render_func fun) { this->render_callback = fun; }
 
     void component::render() const { this->render_callback(); }
 
