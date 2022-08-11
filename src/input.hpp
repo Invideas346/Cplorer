@@ -7,7 +7,8 @@
 #include <stdint.h>
 #include "ascii_table.hpp"
 
-typedef struct input {
+typedef struct input
+{
     /* 4 * 64 = 256 (all ascii chars) */
     uint64_t keys[4];
 } input;

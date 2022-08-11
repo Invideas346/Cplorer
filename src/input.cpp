@@ -3,7 +3,6 @@
 //
 
 #include "input.hpp"
-
 #if _WIN32
 #include <ncurses/ncurses.h>
 #elif unix

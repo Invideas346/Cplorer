@@ -29,10 +29,11 @@ int main(int argc, char** argv)
     uint8_t should_close = false;
 
     ui::component component;
-    component.attach_render_routine([]() -> void {
+    component.attach_render_routine(
+        []() -> void {
 
-    });
-    
+        });
+
     input input = init_input();
 
     /* init ncurses */
@@ -45,7 +46,7 @@ int main(int argc, char** argv)
     content_current_dir = fs::get_dir_content(boost::filesystem::current_path());
     content_parent_dir = fs::get_dir_content(boost::filesystem::current_path().parent_path());
     content_child_dir = fs::get_dir_content(selected_entry, &ec);
-    if(ec == fs::ERROR_CODE::INVALID_ARGUMENT)
+    if (ec == fs::ERROR_CODE::INVALID_ARGUMENT)
     {
         m_file_preview = fs::get_file_content(selected_entry);
     }
