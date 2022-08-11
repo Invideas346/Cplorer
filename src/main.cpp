@@ -4,17 +4,6 @@
 
 #include "main.hpp"
 
-#include <stdio.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <boost/filesystem.hpp>
-
-#if WIN32
-#include <ncurses/ncurses.h>
-#elif unix
-#include <curses.h>
-#endif
-
 #include "ascii_table.hpp"
 #include "input.hpp"
 #include "fs_handler.hpp"
@@ -22,17 +11,12 @@
 
 int main(int argc, char** argv)
 {
-    fs::ERROR_CODE ec;
+    fs::error error;
     std::vector<std::string> content_current_dir, content_parent_dir, content_child_dir;
     std::string m_file_preview;
     boost::filesystem::directory_entry selected_entry;
-    uint8_t should_close = false;
-
-    ui::component component;
-    component.attach_render_routine(
-        []() -> void {
-
-        });
+    bool should_close = false;
+    bool directory_selected = true;
 
     input input = init_input();
 
@@ -45,11 +29,41 @@ int main(int argc, char** argv)
     /* get the content of the current and parent directory */
     content_current_dir = fs::get_dir_content(boost::filesystem::current_path());
     content_parent_dir = fs::get_dir_content(boost::filesystem::current_path().parent_path());
-    content_child_dir = fs::get_dir_content(selected_entry, &ec);
-    if (ec == fs::ERROR_CODE::INVALID_ARGUMENT)
+    selected_entry = boost::filesystem::directory_entry(content_current_dir[0]);
+    content_child_dir = fs::get_dir_content(selected_entry, &error);
+    /* if - did error occure */
+    if (error.ec == fs::error::INVALID_ARGUMENT)
     {
+        directory_selected = false;
         m_file_preview = fs::get_file_content(selected_entry);
     }
+    else if (error.ec != fs::error::NO_ERROR)
+    {
+        error.print();
+        getch();
+        std::exit(1);
+    }
+    /* end if - did error occure  */
+
+    /* create all components */
+    ui::component parent_tree(
+        [&content_parent_dir]() -> void {
+
+        });
+    ui::component current_tree(
+        [&content_current_dir]() -> void {
+
+        });
+    ui::component preview_tab(
+        [&content_child_dir, &m_file_preview, &directory_selected]() -> void {
+
+        });
+
+    /* create the component tree and add all components */
+    ui::component_tree ui_tree;
+    ui_tree.add_comp(parent_tree);
+    ui_tree.add_comp(current_tree);
+    ui_tree.add_comp(preview_tab);
 
     /* while - application loop */
     while (!should_close)
@@ -85,9 +99,7 @@ int main(int argc, char** argv)
         }
         /* end if - was l pressed */
 
-        // render_parent_tree();
-        // render_current_tree();
-        // render_preview();
+        ui_tree.render();
     }
     /* end while - application loop */
 
