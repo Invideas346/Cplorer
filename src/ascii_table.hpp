@@ -152,8 +152,8 @@ typedef enum ascii_table
 
     DEL, // Delete
 
-    //===================[extended ASCII]===================\\
-	//misc letters
+    //===================[extended ASCII]===================//
+    // misc letters
 
     C_UPPER_CEDILLA, // Ç
 

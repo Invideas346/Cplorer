@@ -19,7 +19,7 @@ namespace ui
         component(const render_func& fun);
 
         void attach_render_routine(render_func fun);
-        void render();
+        void render() const;
 
       private:
         render_func render_callback;
@@ -36,7 +36,7 @@ namespace ui
         void pop_back();
         void pop_front();
 
-        void render();
+        void render() const;
 
       private:
         std::vector<struct component> comps;
