@@ -1,15 +1,8 @@
 cmake_minimum_required(VERSION 3.16.3)
 
 set(SOURCE_FILE
-        main.cpp
-        ascii_table.hpp
-        file_handler.cpp
-        file_handler.hpp
-        dir_handler.cpp
-        dir_handler.hpp
-        input.cpp
-        input.hpp)
-
+        main.cpp)
+        
 # Find boost
 find_package(Boost REQUIRED COMPONENTS random system thread filesystem chrono atomic date_time regex)
 
@@ -18,8 +11,13 @@ include_directories(${CURSES_INCLUDE_DIR})
 link_libraries(${CURSES_LIBRARIES})
 
 add_executable(${PROJECT_NAME} ${SOURCE_FILE})
-
 set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
+
+add_library(input input.hpp input.cpp)
+target_link_libraries(${PROJECT_NAME} input)
+
+add_library(fs_handler fs_handler.hpp fs_handler.cpp)
+target_link_libraries(${PROJECT_NAME} fs_handler)
 
 target_link_libraries(${PROJECT_NAME} 
   Boost::boost
