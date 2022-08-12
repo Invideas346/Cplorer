@@ -15,6 +15,7 @@ int main(int argc, char** argv)
     std::vector<std::string> content_current_dir, content_parent_dir, content_child_dir;
     std::string m_file_preview;
     boost::filesystem::directory_entry selected_entry;
+    uint64_t selected_entry_index = 0;
     bool should_close = false;
     bool directory_selected = true;
 
@@ -31,11 +32,13 @@ int main(int argc, char** argv)
     content_parent_dir = fs::get_dir_content(boost::filesystem::current_path().parent_path());
     selected_entry = boost::filesystem::directory_entry(content_current_dir[0]);
     content_child_dir = fs::get_dir_content(selected_entry, &error);
+
     /* if - did error occure */
     if (error.ec == fs::error::INVALID_ARGUMENT)
     {
         directory_selected = false;
-        m_file_preview = fs::get_file_content(selected_entry);
+        m_file_preview =
+            fs::get_file_content_n("/home/wolfgang/Documents/Cplorer/.clang-format", 10);
     }
     else if (error.ec != fs::error::NO_ERROR)
     {
@@ -46,18 +49,15 @@ int main(int argc, char** argv)
     /* end if - did error occure  */
 
     /* create all components */
-    ui::component parent_tree(
-        [&content_parent_dir]() -> void {
+    ui::component parent_tree([&content_parent_dir]() -> void {
 
-        });
-    ui::component current_tree(
-        [&content_current_dir]() -> void {
+    });
+    ui::component current_tree([&content_current_dir]() -> void {
 
-        });
-    ui::component preview_tab(
-        [&content_child_dir, &m_file_preview, &directory_selected]() -> void {
+    });
+    ui::component preview_tab([&content_child_dir, &m_file_preview, &directory_selected]() -> void {
 
-        });
+    });
 
     /* create the component tree and add all components */
     ui::component_tree ui_tree;
@@ -81,14 +81,24 @@ int main(int argc, char** argv)
         /* if - was j pressed */
         if (key_pressed_input(&input, J_LOWER) || key_pressed_input(&input, J_UPPER))
         {
-            should_close = true;
+            if (selected_entry_index < content_current_dir.size() - 2)
+            {
+                selected_entry = boost::filesystem::directory_entry(
+                    content_current_dir[selected_entry_index + 1]);
+                selected_entry_index++;
+            }
         }
         /* end if - was j pressed */
 
         /* end if - was k pressed */
         if (key_pressed_input(&input, K_LOWER) || key_pressed_input(&input, K_UPPER))
         {
-            should_close = true;
+            if (selected_entry_index > 0)
+            {
+                selected_entry = boost::filesystem::directory_entry(
+                    content_current_dir[selected_entry_index - 1]);
+                selected_entry_index--;
+            }
         }
         /* end if - was k pressed */
 
