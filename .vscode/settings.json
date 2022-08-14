@@ -67,7 +67,10 @@
         "numbers": "cpp",
         "semaphore": "cpp",
         "stop_token": "cpp",
-        "hash_map": "cpp"
+        "hash_map": "cpp",
+        "unordered_set": "cpp",
+        "future": "cpp",
+        "shared_mutex": "cpp"
     },
     "cmake.configureOnOpen": true
 }
