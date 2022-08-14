@@ -16,8 +16,8 @@ int main(int argc, char** argv)
 {
     plog::init(plog::debug, "Log.txt");
     fs::error error;
-    std::vector<std::string> content_parent_dir, content_current_dir, content_child_dir;
-    std::string parent_dir, selected_entry, m_file_preview;
+    std::vector<std::string> content_current_dir, content_parent_dir, content_child_dir;
+    std::string selected_entry, parent_dir, m_file_preview;
     uint64_t selected_entry_index = 0;
     bool should_close = false;
     bool directory_selected = true;
