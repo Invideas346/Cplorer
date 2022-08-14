@@ -9,8 +9,12 @@
 #include "fs_handler.hpp"
 #include "cli.hpp"
 
+#include <plog/Log.h>
+#include "plog/Initializers/RollingFileInitializer.h"
+
 int main(int argc, char** argv)
 {
+    plog::init(plog::debug, "Log.txt");
     fs::error error;
     std::vector<std::string> content_current_dir, content_parent_dir, content_child_dir;
     std::string m_file_preview;

@@ -14,4 +14,6 @@ set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR} )
 # Copy the test_files into the output directory.
 file(COPY test_files DESTINATION .)
 
+add_subdirectory(plog)
+
 add_subdirectory(src)
