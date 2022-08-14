@@ -16,9 +16,8 @@ int main(int argc, char** argv)
 {
     plog::init(plog::debug, "Log.txt");
     fs::error error;
-    std::vector<std::string> content_current_dir, content_parent_dir, content_child_dir;
-    std::string m_file_preview;
-    boost::filesystem::directory_entry selected_entry;
+    std::vector<std::string> content_parent_dir, content_current_dir, content_child_dir;
+    std::string parent_dir, selected_entry, m_file_preview;
     uint64_t selected_entry_index = 0;
     bool should_close = false;
     bool directory_selected = true;
@@ -26,15 +25,35 @@ int main(int argc, char** argv)
     input input = init_input();
 
     /* init ncurses */
-    initscr();
+    WINDOW* win = initscr();
+
+    /* set all ncurses functions to be non-blocking */
+    nodelay(win, TRUE);
 
     /* disable echoing input to stdout */
     noecho();
 
+    start_color();
+
+    init_pair(1, COLOR_WHITE, COLOR_BLACK);
+    init_pair(2, COLOR_GREEN, COLOR_BLACK);
+
     /* get the content of the current and parent directory */
     content_current_dir = fs::get_dir_content(boost::filesystem::current_path());
     content_parent_dir = fs::get_dir_content(boost::filesystem::current_path().parent_path());
-    selected_entry = boost::filesystem::directory_entry(content_current_dir[0]);
+
+    /* convert the absolut path to an relative path */
+    for (auto&& entry : content_parent_dir)
+    {
+        entry = entry.substr(entry.find_last_of('/'), entry.size() - entry.find_last_of('/'));
+    }
+    for (auto&& entry : content_current_dir)
+    {
+        entry = entry.substr(entry.find_last_of('/'), entry.size() - entry.find_last_of('/'));
+    }
+
+    selected_entry = content_current_dir[0];
+
     content_child_dir = fs::get_dir_content(selected_entry, &error);
 
     /* if - did error occure */
@@ -54,13 +73,33 @@ int main(int argc, char** argv)
 
     /* create all components */
     ui::component parent_tree([&content_parent_dir]() -> void {
-
+        move(0, 0);
+        for (std::vector<std::string>::iterator it = content_parent_dir.begin();
+             it < content_parent_dir.end(); it++)
+        {
+            attron(COLOR_PAIR(1));
+            addnstr((*it).c_str(), 29);
+            move(it - content_parent_dir.begin() + 1, 0);
+        }
     });
-    ui::component current_tree([&content_current_dir]() -> void {
-
+    ui::component current_tree([&content_current_dir, &selected_entry]() -> void {
+        move(0, 30);
+        for (std::vector<std::string>::iterator it = content_current_dir.begin();
+             it < content_current_dir.end(); it++)
+        {
+            if (selected_entry == *it)
+            {
+                attron(COLOR_PAIR(2));
+            }
+            addnstr((*it).c_str(), 29);
+            attron(COLOR_PAIR(1));
+            move(it - content_current_dir.begin() + 1, 30);
+        }
     });
     ui::component preview_tab([&content_child_dir, &m_file_preview, &directory_selected]() -> void {
-
+        move(0, 60);
+        attron(COLOR_PAIR(1));
+        addnstr(m_file_preview.c_str(), 29);
     });
 
     /* create the component tree and add all components */
@@ -85,10 +124,9 @@ int main(int argc, char** argv)
         /* if - was j pressed */
         if (key_pressed_input(&input, J_LOWER) || key_pressed_input(&input, J_UPPER))
         {
-            if (selected_entry_index < content_current_dir.size() - 2)
+            if (selected_entry_index < content_current_dir.size() - 1)
             {
-                selected_entry = boost::filesystem::directory_entry(
-                    content_current_dir[selected_entry_index + 1]);
+                selected_entry = content_current_dir[selected_entry_index + 1];
                 selected_entry_index++;
             }
         }
@@ -99,8 +137,7 @@ int main(int argc, char** argv)
         {
             if (selected_entry_index > 0)
             {
-                selected_entry = boost::filesystem::directory_entry(
-                    content_current_dir[selected_entry_index - 1]);
+                selected_entry = content_current_dir[selected_entry_index - 1];
                 selected_entry_index--;
             }
         }
@@ -112,6 +149,13 @@ int main(int argc, char** argv)
             should_close = true;
         }
         /* end if - was l pressed */
+
+        /* if - was ESC pressed */
+        if (key_pressed_input(&input, ESC))
+        {
+            should_close = true;
+        }
+        /* end if - was ESC pressed */
 
         ui_tree.render();
     }
