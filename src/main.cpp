@@ -14,12 +14,15 @@
 #include <plog/Log.h>
 #include "plog/Initializers/RollingFileInitializer.h"
 
+/* TODO: Change all std::string paths to boost::filesystem::path's */
 int main(int argc, char** argv)
 {
     plog::init(plog::debug, "Log.txt");
     fs::error error;
     std::vector<std::string> content_current_dir, content_parent_dir, content_child_dir;
-    std::string selected_entry, parent_dir, m_file_preview;
+    std::string m_file_preview;
+    boost::filesystem::path selected_entry, parent_dir;
+    boost::filesystem::path current_dir;
     uint64_t selected_entry_index = 0;
     bool should_close = false;
     bool directory_selected = true;
@@ -41,29 +44,33 @@ int main(int argc, char** argv)
     init_pair(2, COLOR_GREEN, COLOR_BLACK);
 
     /* get the content of the current and parent directory */
-    content_current_dir = fs::get_dir_content(boost::filesystem::current_path());
-    content_parent_dir = fs::get_dir_content(boost::filesystem::current_path().parent_path());
+    current_dir = boost::filesystem::current_path();
+    content_current_dir = fs::get_dir_content(current_dir);
+    content_parent_dir = fs::get_dir_content(current_dir.parent_path());
+    selected_entry = boost::filesystem::path(content_current_dir[0]);
+    content_child_dir = fs::get_dir_content(selected_entry, &error);
 
     /* convert the absolut path to an relative path */
     for (auto&& entry : content_parent_dir)
     {
-        entry = entry.substr(entry.find_last_of('/'), entry.size() - entry.find_last_of('/'));
+        if (entry.find_last_of('/') != std::string::npos)
+        {
+            entry = entry.substr(entry.find_last_of('/'), entry.size() - entry.find_last_of('/'));
+        }
     }
     for (auto&& entry : content_current_dir)
     {
-        entry = entry.substr(entry.find_last_of('/'), entry.size() - entry.find_last_of('/'));
+        if (entry.find_last_of('/') != std::string::npos)
+        {
+            entry = entry.substr(entry.find_last_of('/'), entry.size() - entry.find_last_of('/'));
+        }
     }
-
-    selected_entry = content_current_dir[0];
-
-    content_child_dir = fs::get_dir_content(selected_entry, &error);
 
     /* if - did error occure */
     if (error.ec == fs::error::INVALID_ARGUMENT)
     {
         directory_selected = false;
-        m_file_preview =
-            fs::get_file_content_n("/home/wolfgang/Documents/Cplorer/.clang-format", 10);
+        m_file_preview = fs::get_file_content_n(selected_entry, 10);
     }
     else if (error.ec != fs::error::NO_ERROR)
     {
@@ -116,10 +123,68 @@ int main(int argc, char** argv)
         /* get console input */
         fetch_input(&input);
 
+        /* if - was enter pressed */
+        if (key_pressed_input(&input, CR) || key_pressed_input(&input, L_LOWER) ||
+            key_pressed_input(&input, L_UPPER))
+        {
+            if (directory_selected)
+            {
+                current_dir = boost::filesystem::path(selected_entry);
+                content_current_dir = fs::get_dir_content(current_dir);
+                content_parent_dir = fs::get_dir_content(current_dir.parent_path());
+
+                /* convert the absolut path to an relative path */
+                for (auto&& entry : content_parent_dir)
+                {
+                    if (entry.find_last_of('/') != std::string::npos)
+                    {
+                        entry = entry.substr(entry.find_last_of('/'),
+                                             entry.size() - entry.find_last_of('/'));
+                    }
+                }
+                for (auto&& entry : content_current_dir)
+                {
+                    if (entry.find_last_of('/') != std::string::npos)
+                    {
+                        entry = entry.substr(entry.find_last_of('/'),
+                                             entry.size() - entry.find_last_of('/'));
+                    }
+                }
+                selected_entry = content_current_dir[0];
+                content_child_dir = fs::get_dir_content(selected_entry, &error);
+            }
+            clear();
+        }
+        /* end if - was enter pressed */
+
         /* if - was h pressed */
         if (key_pressed_input(&input, H_LOWER) || key_pressed_input(&input, H_UPPER))
         {
-            should_close = true;
+            /* get the content of the current and parent directory */
+            current_dir = current_dir.parent_path();
+            content_current_dir = fs::get_dir_content(current_dir);
+            content_parent_dir = fs::get_dir_content(current_dir.parent_path());
+
+            /* convert the absolut path to an relative path */
+            for (auto&& entry : content_parent_dir)
+            {
+                if (entry.find_last_of('/') != std::string::npos)
+                {
+                    entry = entry.substr(entry.find_last_of('/'),
+                                         entry.size() - entry.find_last_of('/'));
+                }
+            }
+            for (auto&& entry : content_current_dir)
+            {
+                if (entry.find_last_of('/') != std::string::npos)
+                {
+                    entry = entry.substr(entry.find_last_of('/'),
+                                         entry.size() - entry.find_last_of('/'));
+                }
+            }
+            selected_entry = content_current_dir[0];
+            content_child_dir = fs::get_dir_content(selected_entry, &error);
+            clear();
         }
         /* end if - was h pressed */
 
@@ -130,7 +195,9 @@ int main(int argc, char** argv)
             {
                 selected_entry = content_current_dir[selected_entry_index + 1];
                 selected_entry_index++;
+                directory_selected = boost::filesystem::is_directory(selected_entry) ? true : false;
             }
+            clear();
         }
         /* end if - was j pressed */
 
@@ -141,7 +208,9 @@ int main(int argc, char** argv)
             {
                 selected_entry = content_current_dir[selected_entry_index - 1];
                 selected_entry_index--;
+                directory_selected = boost::filesystem::is_directory(selected_entry) ? true : false;
             }
+            clear();
         }
         /* end if - was k pressed */
 
@@ -159,6 +228,7 @@ int main(int argc, char** argv)
         }
         /* end if - was ESC pressed */
 
+        /* render the ui components */
         ui_tree.render();
     }
     /* end while - application loop */

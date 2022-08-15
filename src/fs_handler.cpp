@@ -27,9 +27,10 @@ namespace fs
     {
         std::vector<std::string> m_children;
         auto dir_path = boost::filesystem::path(path);
+        auto test = boost::filesystem::absolute(dir_path);
 
         /* if - is passed in path a directory */
-        if (boost::filesystem::is_directory(dir_path) == false)
+        if (boost::filesystem::is_directory(test) == false)
         {
             PLOG_DEBUG << "Passed in path is not a directory";
             SET_ERROR(error, error::INVALID_ARGUMENT, "Passed in path is not a directory");
@@ -54,10 +55,9 @@ namespace fs
     std::vector<std::string> get_dir_content(const boost::filesystem::path& path, error* error)
     {
         std::vector<std::string> m_children;
-        std::string path_str = path.native().c_str();
 
         /* if - is passed in path a directory */
-        if (!boost::filesystem::is_directory(path))
+        if (boost::filesystem::is_directory(path) == false)
         {
             PLOG_DEBUG << "Passed in path is not a directory";
             SET_ERROR(error, error::INVALID_ARGUMENT, "Passed in path is not a directory");
