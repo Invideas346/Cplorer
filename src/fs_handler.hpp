@@ -1,7 +1,11 @@
 #pragma once
 
+/*<================= Include =================>*/
+/*<----------------- System ------------------>*/
 #include <vector>
 #include <string>
+
+/*<----------------- Library ----------------->*/
 #include <boost/filesystem.hpp>
 
 namespace fs

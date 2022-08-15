@@ -1,12 +1,15 @@
 #pragma once
 
+/*<================= Include =================>*/
+/*<----------------- System ------------------>*/
+#include <functional>
+
+/*<----------------- Library ----------------->*/
 #if WIN32
 #include <ncurses/ncurses.h>
 #elif unix
 #include <curses.h>
 #endif
-
-#include <functional>
 
 typedef std::function<void()> render_func;
 

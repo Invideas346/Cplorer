@@ -4,7 +4,11 @@
 
 #pragma once
 
+/*<================= Include =================>*/
+/*<----------------- System ------------------>*/
 #include <stdint.h>
+
+/*<--------------- Application --------------->*/
 #include "ascii_table.hpp"
 
 typedef struct input

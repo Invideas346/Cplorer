@@ -2,13 +2,15 @@
 // Created by wolfgang on 07/08/2022.
 //
 
+/*<================= Include =================>*/
+/*<--------------- Application --------------->*/
 #include "main.hpp"
-
 #include "ascii_table.hpp"
 #include "input.hpp"
 #include "fs_handler.hpp"
 #include "cli.hpp"
 
+/*<----------------- Library ----------------->*/
 #include <plog/Log.h>
 #include "plog/Initializers/RollingFileInitializer.h"
 
