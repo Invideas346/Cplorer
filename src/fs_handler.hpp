@@ -26,10 +26,12 @@ namespace fs
         CODE ec = NO_ERROR;
     };
 
-    std::vector<std::string> get_dir_content(const char* path, std::optional<error> error);
-    std::vector<std::string> get_dir_content(const std::string& path, std::optional<error> error);
-    std::vector<std::string> get_dir_content(const boost::filesystem::path& path,
-                                             std::optional<error> error);
+    std::vector<boost::filesystem::path> get_dir_content(const char* path,
+                                                         std::optional<error> error);
+    std::vector<boost::filesystem::path> get_dir_content(const std::string& path,
+                                                         std::optional<error> error);
+    std::vector<boost::filesystem::path> get_dir_content(const boost::filesystem::path& path,
+                                                         std::optional<error> error);
 
     std::string get_file_content(const char* path, std::optional<error> error);
     std::string get_file_content(const std::string& path, std::optional<error> error);

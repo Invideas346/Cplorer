@@ -19,10 +19,10 @@ int main(int argc, char** argv)
 {
     plog::init(plog::debug, "Log.txt");
     fs::error error;
-    std::vector<std::string> content_current_dir, content_parent_dir, content_child_dir;
-    std::string m_file_preview;
+    std::vector<boost::filesystem::path> content_current_dir, content_parent_dir, content_child_dir;
     boost::filesystem::path selected_entry, parent_dir;
     boost::filesystem::path current_dir;
+    std::string m_file_preview;
     uint64_t selected_entry_index = 0;
     bool should_close = false;
     bool directory_selected = true;
@@ -50,22 +50,6 @@ int main(int argc, char** argv)
     selected_entry = boost::filesystem::path(content_current_dir[0]);
     content_child_dir = fs::get_dir_content(selected_entry, error);
 
-    /* convert the absolut path to an relative path */
-    for (auto&& entry : content_parent_dir)
-    {
-        if (entry.find_last_of('/') != std::string::npos)
-        {
-            entry = entry.substr(entry.find_last_of('/'), entry.size() - entry.find_last_of('/'));
-        }
-    }
-    for (auto&& entry : content_current_dir)
-    {
-        if (entry.find_last_of('/') != std::string::npos)
-        {
-            entry = entry.substr(entry.find_last_of('/'), entry.size() - entry.find_last_of('/'));
-        }
-    }
-
     /* if - did error occure */
     if (error.ec == fs::error::INVALID_ARGUMENT)
     {
@@ -81,26 +65,27 @@ int main(int argc, char** argv)
     /* end if - did error occure  */
 
     /* create all components */
-    ui::component parent_tree([&content_parent_dir]() -> void {
+    ui::component parent_tree([&content_parent_dir, &current_dir]() -> void {
         move(0, 0);
-        for (std::vector<std::string>::iterator it = content_parent_dir.begin();
+        for (std::vector<boost::filesystem::path>::iterator it = content_parent_dir.begin();
              it < content_parent_dir.end(); it++)
         {
             attron(COLOR_PAIR(1));
-            addnstr((*it).c_str(), 29);
+            addnstr(boost::filesystem::relative(*it, current_dir.parent_path()).native().c_str(),
+                    29);
             move(it - content_parent_dir.begin() + 1, 0);
         }
     });
-    ui::component current_tree([&content_current_dir, &selected_entry]() -> void {
+    ui::component current_tree([&content_current_dir, &selected_entry, &current_dir]() -> void {
         move(0, 30);
-        for (std::vector<std::string>::iterator it = content_current_dir.begin();
+        for (std::vector<boost::filesystem::path>::iterator it = content_current_dir.begin();
              it < content_current_dir.end(); it++)
         {
             if (selected_entry == *it)
             {
                 attron(COLOR_PAIR(2));
             }
-            addnstr((*it).c_str(), 29);
+            addnstr(boost::filesystem::relative(*it, current_dir).native().c_str(), 29);
             attron(COLOR_PAIR(1));
             move(it - content_current_dir.begin() + 1, 30);
         }
@@ -132,24 +117,6 @@ int main(int argc, char** argv)
                 current_dir = boost::filesystem::path(selected_entry);
                 content_current_dir = fs::get_dir_content(current_dir, std::nullopt);
                 content_parent_dir = fs::get_dir_content(current_dir.parent_path(), std::nullopt);
-
-                /* convert the absolut path to an relative path */
-                for (auto&& entry : content_parent_dir)
-                {
-                    if (entry.find_last_of('/') != std::string::npos)
-                    {
-                        entry = entry.substr(entry.find_last_of('/'),
-                                             entry.size() - entry.find_last_of('/'));
-                    }
-                }
-                for (auto&& entry : content_current_dir)
-                {
-                    if (entry.find_last_of('/') != std::string::npos)
-                    {
-                        entry = entry.substr(entry.find_last_of('/'),
-                                             entry.size() - entry.find_last_of('/'));
-                    }
-                }
                 selected_entry = content_current_dir[0];
                 content_child_dir = fs::get_dir_content(selected_entry, error);
             }
@@ -164,24 +131,6 @@ int main(int argc, char** argv)
             current_dir = current_dir.parent_path();
             content_current_dir = fs::get_dir_content(current_dir, std::nullopt);
             content_parent_dir = fs::get_dir_content(current_dir.parent_path(), std::nullopt);
-
-            /* convert the absolut path to an relative path */
-            for (auto&& entry : content_parent_dir)
-            {
-                if (entry.find_last_of('/') != std::string::npos)
-                {
-                    entry = entry.substr(entry.find_last_of('/'),
-                                         entry.size() - entry.find_last_of('/'));
-                }
-            }
-            for (auto&& entry : content_current_dir)
-            {
-                if (entry.find_last_of('/') != std::string::npos)
-                {
-                    entry = entry.substr(entry.find_last_of('/'),
-                                         entry.size() - entry.find_last_of('/'));
-                }
-            }
             selected_entry = content_current_dir[0];
             content_child_dir = fs::get_dir_content(selected_entry, error);
             clear();

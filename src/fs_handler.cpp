@@ -19,14 +19,16 @@ namespace fs
         }
     }
 
-    std::vector<std::string> get_dir_content(const char* path, std::optional<error> error)
+    std::vector<boost::filesystem::path> get_dir_content(const char* path,
+                                                         std::optional<error> error)
     {
         return get_dir_content(std::string(path), error);
     }
 
-    std::vector<std::string> get_dir_content(const std::string& path, std::optional<error> error)
+    std::vector<boost::filesystem::path> get_dir_content(const std::string& path,
+                                                         std::optional<error> error)
     {
-        std::vector<std::string> m_children;
+        std::vector<boost::filesystem::path> m_children;
         auto dir_path = boost::filesystem::path(path);
         auto test = boost::filesystem::absolute(dir_path);
 
@@ -45,7 +47,7 @@ namespace fs
         /* for - iterate over all director entries */
         for (auto&& dir_entry : dir_iter)
         {
-            m_children.push_back(dir_entry.path().relative_path().native().c_str());
+            m_children.push_back(dir_entry.path());
         }
         /* end for - iterate over all director entries */
 
@@ -53,10 +55,10 @@ namespace fs
         return m_children;
     }
 
-    std::vector<std::string> get_dir_content(const boost::filesystem::path& path,
-                                             std::optional<error> error)
+    std::vector<boost::filesystem::path> get_dir_content(const boost::filesystem::path& path,
+                                                         std::optional<error> error)
     {
-        std::vector<std::string> m_children;
+        std::vector<boost::filesystem::path> m_children;
 
         /* if - is passed in path a directory */
         if (boost::filesystem::is_directory(path) == false)
@@ -73,7 +75,7 @@ namespace fs
         /* for - iterate over all director entries */
         for (auto&& entry : dir_iter)
         {
-            m_children.push_back(entry.path().relative_path().native().c_str());
+            m_children.push_back(entry.path());
         }
         /* end for - iterate over all director entries */
 
