@@ -14,7 +14,6 @@
 #include <plog/Log.h>
 #include "plog/Initializers/RollingFileInitializer.h"
 
-/* TODO: Change all std::string paths to boost::filesystem::path's */
 int main(int argc, char** argv)
 {
     plog::init(plog::debug, "Log.txt");
@@ -65,36 +64,43 @@ int main(int argc, char** argv)
     /* end if - did error occure  */
 
     /* create all components */
-    ui::component parent_tree([&content_parent_dir, &current_dir]() -> void {
-        move(0, 0);
-        for (std::vector<boost::filesystem::path>::iterator it = content_parent_dir.begin();
-             it < content_parent_dir.end(); it++)
+    ui::component parent_tree(
+        [&content_parent_dir, &current_dir]() -> void
         {
-            attron(COLOR_PAIR(1));
-            addnstr(boost::filesystem::relative(*it, current_dir.parent_path()).native().c_str(),
-                    29);
-            move(it - content_parent_dir.begin() + 1, 0);
-        }
-    });
-    ui::component current_tree([&content_current_dir, &selected_entry, &current_dir]() -> void {
-        move(0, 30);
-        for (std::vector<boost::filesystem::path>::iterator it = content_current_dir.begin();
-             it < content_current_dir.end(); it++)
-        {
-            if (selected_entry == *it)
+            move(0, 0);
+            for (std::vector<boost::filesystem::path>::iterator it = content_parent_dir.begin();
+                 it < content_parent_dir.end(); it++)
             {
-                attron(COLOR_PAIR(2));
+                attron(COLOR_PAIR(1));
+                addnstr(
+                    boost::filesystem::relative(*it, current_dir.parent_path()).native().c_str(),
+                    29);
+                move(it - content_parent_dir.begin() + 1, 0);
             }
-            addnstr(boost::filesystem::relative(*it, current_dir).native().c_str(), 29);
+        });
+    ui::component current_tree(
+        [&content_current_dir, &selected_entry, &current_dir]() -> void
+        {
+            move(0, 30);
+            for (std::vector<boost::filesystem::path>::iterator it = content_current_dir.begin();
+                 it < content_current_dir.end(); it++)
+            {
+                if (selected_entry == *it)
+                {
+                    attron(COLOR_PAIR(2));
+                }
+                addnstr(boost::filesystem::relative(*it, current_dir).native().c_str(), 29);
+                attron(COLOR_PAIR(1));
+                move(it - content_current_dir.begin() + 1, 30);
+            }
+        });
+    ui::component preview_tab(
+        [&content_child_dir, &m_file_preview, &directory_selected]() -> void
+        {
+            move(0, 60);
             attron(COLOR_PAIR(1));
-            move(it - content_current_dir.begin() + 1, 30);
-        }
-    });
-    ui::component preview_tab([&content_child_dir, &m_file_preview, &directory_selected]() -> void {
-        move(0, 60);
-        attron(COLOR_PAIR(1));
-        addnstr(m_file_preview.c_str(), 29);
-    });
+            addnstr(m_file_preview.c_str(), 29);
+        });
 
     /* create the component tree and add all components */
     ui::component_tree ui_tree;
@@ -119,6 +125,7 @@ int main(int argc, char** argv)
                 content_parent_dir = fs::get_dir_content(current_dir.parent_path(), std::nullopt);
                 selected_entry = content_current_dir[0];
                 content_child_dir = fs::get_dir_content(selected_entry, error);
+                selected_entry_index = 0;
             }
             clear();
         }
@@ -127,13 +134,17 @@ int main(int argc, char** argv)
         /* if - was h pressed */
         if (key_pressed_input(input, H_LOWER) || key_pressed_input(input, H_UPPER))
         {
-            /* get the content of the current and parent directory */
-            current_dir = current_dir.parent_path();
-            content_current_dir = fs::get_dir_content(current_dir, std::nullopt);
-            content_parent_dir = fs::get_dir_content(current_dir.parent_path(), std::nullopt);
-            selected_entry = content_current_dir[0];
-            content_child_dir = fs::get_dir_content(selected_entry, error);
-            clear();
+            if (current_dir.has_parent_path())
+            {
+                /* get the content of the current and parent directory */
+                current_dir = current_dir.parent_path();
+                content_current_dir = fs::get_dir_content(current_dir, std::nullopt);
+                content_parent_dir = fs::get_dir_content(current_dir.parent_path(), std::nullopt);
+                selected_entry = content_current_dir[0];
+                content_child_dir = fs::get_dir_content(selected_entry, error);
+                selected_entry_index = 0;
+                clear();
+            }
         }
         /* end if - was h pressed */
 
@@ -162,13 +173,6 @@ int main(int argc, char** argv)
             clear();
         }
         /* end if - was k pressed */
-
-        /* if - was l pressed */
-        if (key_pressed_input(input, L_LOWER) || key_pressed_input(input, L_UPPER))
-        {
-            should_close = true;
-        }
-        /* end if - was l pressed */
 
         /* if - was ESC pressed */
         if (key_pressed_input(input, ESC))

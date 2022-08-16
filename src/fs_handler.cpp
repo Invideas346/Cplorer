@@ -210,7 +210,7 @@ namespace fs
         /* while - read till eof is reached */
 
         data = buffer;
-        free(buffer);
+        delete[] buffer;
         SET_ERROR(error, error::NO_ERROR);
         return data;
     }
