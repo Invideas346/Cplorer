@@ -1,5 +1,5 @@
 # Cplorer
-A console based file explorer for linux and windows.
+A console based file explorer for Linux and Windows.
 
 ## Building
 For unix like systems the building process is rather straight forward.

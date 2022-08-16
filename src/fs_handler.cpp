@@ -204,10 +204,12 @@ namespace fs
         /* while - read till eof is reached */
         while (!fs.eof() && CHUNK_SIZE * chunk_cntr < n)
         {
-            fs.read(buffer + chunk_cntr, n < CHUNK_SIZE ? n : CHUNK_SIZE);
+            fs.read(buffer + chunk_cntr * CHUNK_SIZE, n < CHUNK_SIZE ? n : CHUNK_SIZE);
             chunk_cntr++;
         }
         /* while - read till eof is reached */
+
+        fs.close();
 
         data = buffer;
         delete[] buffer;
@@ -242,15 +244,21 @@ namespace fs
         /* end if - check if the file stream could open */
 
         constexpr uint64_t CHUNK_SIZE = 4096;
-        char buffer[CHUNK_SIZE] = {0};
+        char* buffer = new char[n];
+        uint64_t chunk_cntr = 0;
 
         /* while - read till eof is reached */
-        while (fs.tellg() != fs.eof())
+        while (!fs.eof() && CHUNK_SIZE * chunk_cntr < n)
         {
-            fs.read(buffer, CHUNK_SIZE);
+            fs.read(buffer + chunk_cntr * CHUNK_SIZE, n < CHUNK_SIZE ? n : CHUNK_SIZE);
+            chunk_cntr++;
         }
         /* while - read till eof is reached */
 
+        fs.close();
+
+        data = buffer;
+        delete[] buffer;
         SET_ERROR(error, error::NO_ERROR);
         return data;
     }

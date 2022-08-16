@@ -21,7 +21,7 @@ int main(int argc, char** argv)
     std::vector<boost::filesystem::path> content_current_dir, content_parent_dir, content_child_dir;
     boost::filesystem::path selected_entry, parent_dir;
     boost::filesystem::path current_dir;
-    std::string m_file_preview;
+    std::string file_preview;
     uint64_t selected_entry_index = 0;
     bool should_close = false;
     bool directory_selected = true;
@@ -53,7 +53,7 @@ int main(int argc, char** argv)
     if (error.ec == fs::error::INVALID_ARGUMENT)
     {
         directory_selected = false;
-        m_file_preview = fs::get_file_content_n(selected_entry, 10, std::nullopt);
+        file_preview = fs::get_file_content_n(selected_entry, 10, std::nullopt);
     }
     else if (error.ec != fs::error::NO_ERROR)
     {
@@ -95,11 +95,44 @@ int main(int argc, char** argv)
             }
         });
     ui::component preview_tab(
-        [&content_child_dir, &m_file_preview, &directory_selected]() -> void
+        [&content_child_dir, &file_preview, &directory_selected, &selected_entry]() -> void
         {
             move(0, 60);
             attron(COLOR_PAIR(1));
-            addnstr(m_file_preview.c_str(), 29);
+            if (directory_selected)
+            {
+                for (std::vector<boost::filesystem::path>::iterator it = content_child_dir.begin();
+                     it < content_child_dir.end(); it++)
+                {
+                    attron(COLOR_PAIR(1));
+                    addnstr(boost::filesystem::relative(*it, selected_entry).native().c_str(), 29);
+                    move(it - content_child_dir.begin() + 1, 60);
+                }
+            }
+            else
+            {
+                uint64_t line_breaks = 0;
+                uint64_t chars_line = 0;
+                move(0, 60);
+                for (auto&& ch : file_preview)
+                {
+                    if (ch == '\n')
+                    {
+                        line_breaks++;
+                        move(line_breaks, 60);
+                        continue;
+                    }
+                    addch(ch);
+                    chars_line++;
+                    if (chars_line > 200)
+                    {
+                        line_breaks++;
+                        move(line_breaks, 60);
+                        addstr("        ");
+                        chars_line = 8;
+                    }
+                }
+            }
         });
 
     /* create the component tree and add all components */
@@ -121,11 +154,18 @@ int main(int argc, char** argv)
             /* if - is the current selected entry a directory */
             if (directory_selected)
             {
+                content_current_dir = content_child_dir;
                 current_dir = boost::filesystem::path(selected_entry);
-                content_current_dir = fs::get_dir_content(current_dir, std::nullopt);
                 content_parent_dir = fs::get_dir_content(current_dir.parent_path(), std::nullopt);
                 selected_entry = content_current_dir[0];
-                content_child_dir = fs::get_dir_content(selected_entry, error);
+                if (boost::filesystem::is_directory(selected_entry))
+                {
+                    content_child_dir = fs::get_dir_content(selected_entry, std::nullopt);
+                }
+                else
+                {
+                    file_preview = fs::get_file_content_n(selected_entry, 1000, std::nullopt);
+                }
                 selected_entry_index = 0;
             }
             /* end if - is the current selected entry a directory */
@@ -140,11 +180,11 @@ int main(int argc, char** argv)
             if (current_dir.has_parent_path())
             {
                 /* get the content of the current and parent directory */
+                content_child_dir = content_current_dir;
                 current_dir = current_dir.parent_path();
                 content_current_dir = fs::get_dir_content(current_dir, std::nullopt);
                 content_parent_dir = fs::get_dir_content(current_dir.parent_path(), std::nullopt);
                 selected_entry = content_current_dir[0];
-                content_child_dir = fs::get_dir_content(selected_entry, error);
                 selected_entry_index = 0;
                 clear();
             }
@@ -161,6 +201,14 @@ int main(int argc, char** argv)
                 selected_entry = content_current_dir[selected_entry_index + 1];
                 selected_entry_index++;
                 directory_selected = boost::filesystem::is_directory(selected_entry) ? true : false;
+                if (directory_selected)
+                {
+                    content_child_dir = fs::get_dir_content(selected_entry, std::nullopt);
+                }
+                else
+                {
+                    file_preview = fs::get_file_content_n(selected_entry, 1000, std::nullopt);
+                }
                 clear();
             }
             /* end if - stay inbounds of the content_current_dir vector */
@@ -176,6 +224,14 @@ int main(int argc, char** argv)
                 selected_entry = content_current_dir[selected_entry_index - 1];
                 selected_entry_index--;
                 directory_selected = boost::filesystem::is_directory(selected_entry) ? true : false;
+                if (directory_selected)
+                {
+                    content_child_dir = fs::get_dir_content(selected_entry, std::nullopt);
+                }
+                else
+                {
+                    file_preview = fs::get_file_content_n(selected_entry, 1000, std::nullopt);
+                }
                 clear();
             }
             /* end if - stay inbounds of the content_current_dir vector */
