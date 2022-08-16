@@ -118,6 +118,7 @@ int main(int argc, char** argv)
         if (key_pressed_input(input, CR) || key_pressed_input(input, L_LOWER) ||
             key_pressed_input(input, L_UPPER))
         {
+            /* if - is the current selected entry a directory */
             if (directory_selected)
             {
                 current_dir = boost::filesystem::path(selected_entry);
@@ -127,6 +128,7 @@ int main(int argc, char** argv)
                 content_child_dir = fs::get_dir_content(selected_entry, error);
                 selected_entry_index = 0;
             }
+            /* end if - is the current selected entry a directory */
             clear();
         }
         /* end if - was enter pressed */
@@ -134,6 +136,7 @@ int main(int argc, char** argv)
         /* if - was h pressed */
         if (key_pressed_input(input, H_LOWER) || key_pressed_input(input, H_UPPER))
         {
+            /* if - has the current directory a parent directory */
             if (current_dir.has_parent_path())
             {
                 /* get the content of the current and parent directory */
@@ -145,32 +148,37 @@ int main(int argc, char** argv)
                 selected_entry_index = 0;
                 clear();
             }
+            /* end if - has the current directory a parent directory */
         }
         /* end if - was h pressed */
 
         /* if - was j pressed */
         if (key_pressed_input(input, J_LOWER) || key_pressed_input(input, J_UPPER))
         {
+            /* if - stay inbounds of the content_current_dir vector */
             if (selected_entry_index < content_current_dir.size() - 1)
             {
                 selected_entry = content_current_dir[selected_entry_index + 1];
                 selected_entry_index++;
                 directory_selected = boost::filesystem::is_directory(selected_entry) ? true : false;
+                clear();
             }
-            clear();
+            /* end if - stay inbounds of the content_current_dir vector */
         }
         /* end if - was j pressed */
 
         /* end if - was k pressed */
         if (key_pressed_input(input, K_LOWER) || key_pressed_input(input, K_UPPER))
         {
+            /* if - stay inbounds of the content_current_dir vector */
             if (selected_entry_index > 0)
             {
                 selected_entry = content_current_dir[selected_entry_index - 1];
                 selected_entry_index--;
                 directory_selected = boost::filesystem::is_directory(selected_entry) ? true : false;
+                clear();
             }
-            clear();
+            /* end if - stay inbounds of the content_current_dir vector */
         }
         /* end if - was k pressed */
 
