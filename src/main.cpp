@@ -45,10 +45,10 @@ int main(int argc, char** argv)
 
     /* get the content of the current and parent directory */
     current_dir = boost::filesystem::current_path();
-    content_current_dir = fs::get_dir_content(current_dir);
-    content_parent_dir = fs::get_dir_content(current_dir.parent_path());
+    content_current_dir = fs::get_dir_content(current_dir, std::nullopt);
+    content_parent_dir = fs::get_dir_content(current_dir.parent_path(), std::nullopt);
     selected_entry = boost::filesystem::path(content_current_dir[0]);
-    content_child_dir = fs::get_dir_content(selected_entry, &error);
+    content_child_dir = fs::get_dir_content(selected_entry, error);
 
     /* convert the absolut path to an relative path */
     for (auto&& entry : content_parent_dir)
@@ -70,7 +70,7 @@ int main(int argc, char** argv)
     if (error.ec == fs::error::INVALID_ARGUMENT)
     {
         directory_selected = false;
-        m_file_preview = fs::get_file_content_n(selected_entry, 10);
+        m_file_preview = fs::get_file_content_n(selected_entry, 10, std::nullopt);
     }
     else if (error.ec != fs::error::NO_ERROR)
     {
@@ -121,17 +121,17 @@ int main(int argc, char** argv)
     while (!should_close)
     {
         /* get console input */
-        fetch_input(&input);
+        fetch_input(input);
 
         /* if - was enter pressed */
-        if (key_pressed_input(&input, CR) || key_pressed_input(&input, L_LOWER) ||
-            key_pressed_input(&input, L_UPPER))
+        if (key_pressed_input(input, CR) || key_pressed_input(input, L_LOWER) ||
+            key_pressed_input(input, L_UPPER))
         {
             if (directory_selected)
             {
                 current_dir = boost::filesystem::path(selected_entry);
-                content_current_dir = fs::get_dir_content(current_dir);
-                content_parent_dir = fs::get_dir_content(current_dir.parent_path());
+                content_current_dir = fs::get_dir_content(current_dir, std::nullopt);
+                content_parent_dir = fs::get_dir_content(current_dir.parent_path(), std::nullopt);
 
                 /* convert the absolut path to an relative path */
                 for (auto&& entry : content_parent_dir)
@@ -151,19 +151,19 @@ int main(int argc, char** argv)
                     }
                 }
                 selected_entry = content_current_dir[0];
-                content_child_dir = fs::get_dir_content(selected_entry, &error);
+                content_child_dir = fs::get_dir_content(selected_entry, error);
             }
             clear();
         }
         /* end if - was enter pressed */
 
         /* if - was h pressed */
-        if (key_pressed_input(&input, H_LOWER) || key_pressed_input(&input, H_UPPER))
+        if (key_pressed_input(input, H_LOWER) || key_pressed_input(input, H_UPPER))
         {
             /* get the content of the current and parent directory */
             current_dir = current_dir.parent_path();
-            content_current_dir = fs::get_dir_content(current_dir);
-            content_parent_dir = fs::get_dir_content(current_dir.parent_path());
+            content_current_dir = fs::get_dir_content(current_dir, std::nullopt);
+            content_parent_dir = fs::get_dir_content(current_dir.parent_path(), std::nullopt);
 
             /* convert the absolut path to an relative path */
             for (auto&& entry : content_parent_dir)
@@ -183,13 +183,13 @@ int main(int argc, char** argv)
                 }
             }
             selected_entry = content_current_dir[0];
-            content_child_dir = fs::get_dir_content(selected_entry, &error);
+            content_child_dir = fs::get_dir_content(selected_entry, error);
             clear();
         }
         /* end if - was h pressed */
 
         /* if - was j pressed */
-        if (key_pressed_input(&input, J_LOWER) || key_pressed_input(&input, J_UPPER))
+        if (key_pressed_input(input, J_LOWER) || key_pressed_input(input, J_UPPER))
         {
             if (selected_entry_index < content_current_dir.size() - 1)
             {
@@ -202,7 +202,7 @@ int main(int argc, char** argv)
         /* end if - was j pressed */
 
         /* end if - was k pressed */
-        if (key_pressed_input(&input, K_LOWER) || key_pressed_input(&input, K_UPPER))
+        if (key_pressed_input(input, K_LOWER) || key_pressed_input(input, K_UPPER))
         {
             if (selected_entry_index > 0)
             {
@@ -215,14 +215,14 @@ int main(int argc, char** argv)
         /* end if - was k pressed */
 
         /* if - was l pressed */
-        if (key_pressed_input(&input, L_LOWER) || key_pressed_input(&input, L_UPPER))
+        if (key_pressed_input(input, L_LOWER) || key_pressed_input(input, L_UPPER))
         {
             should_close = true;
         }
         /* end if - was l pressed */
 
         /* if - was ESC pressed */
-        if (key_pressed_input(&input, ESC))
+        if (key_pressed_input(input, ESC))
         {
             should_close = true;
         }

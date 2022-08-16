@@ -19,5 +19,5 @@ typedef struct input
 
 input init_input();
 
-void fetch_input(input* input);
-uint8_t key_pressed_input(input* input, ascii_table character);
+void fetch_input(input& input);
+uint8_t key_pressed_input(input& input, ascii_table character);
