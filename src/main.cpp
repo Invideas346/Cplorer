@@ -14,6 +14,16 @@
 #include <plog/Log.h>
 #include "plog/Initializers/RollingFileInitializer.h"
 
+enum struct COLOR_SCHEMS : uint16_t
+{
+    DEFAULT = 1,
+    SELECTED,
+
+    TEXT_FILE,
+    BINARY_FILE,
+    DIRECTORY
+};
+
 int main(int argc, char** argv)
 {
     plog::init(plog::debug, "Log.txt");
@@ -41,8 +51,9 @@ int main(int argc, char** argv)
 
     start_color();
 
-    init_pair(1, COLOR_WHITE, COLOR_BLACK);
-    init_pair(2, COLOR_GREEN, COLOR_BLACK);
+    /* initialize the color pairs */
+    init_pair((uint16_t) COLOR_SCHEMS::DEFAULT, COLOR_WHITE, COLOR_BLACK);
+    init_pair((uint16_t) COLOR_SCHEMS::SELECTED, COLOR_GREEN, COLOR_BLACK);
 
     /* get the content of the current and parent directory */
     current_dir = boost::filesystem::current_path();
@@ -59,6 +70,7 @@ int main(int argc, char** argv)
     }
     else if (error.ec != fs::error::NO_ERROR)
     {
+        /* handle unexpected error */
         error.print();
         getch();
         std::exit(1);
@@ -67,29 +79,53 @@ int main(int argc, char** argv)
 
     /* create all components */
     ui::component parent_tree([&content_parent_dir, &current_dir]() -> void {
-        move(0, 0);
+        constexpr uint64_t origin_x = 0, origin_y = 0;
+
+        /* move the cursor to the origin */
+        move(origin_y, origin_x);
+
+        /* change font color to default */
+        attron(COLOR_PAIR(COLOR_SCHEMS::DEFAULT));
+
+        /* for - iterate ocer content_parent_dir */
         for (std::vector<boost::filesystem::path>::iterator it = content_parent_dir.begin();
              it < content_parent_dir.end(); it++)
         {
-            attron(COLOR_PAIR(1));
             addnstr(boost::filesystem::relative(*it, current_dir.parent_path()).native().c_str(),
                     29);
+
+            /* re-adjust the cursor */
             move(it - content_parent_dir.begin() + 1, 0);
         }
+        /* end for - iterate ocer content_parent_dir */
     });
     ui::component current_tree([&content_current_dir, &selected_entry, &current_dir]() -> void {
-        move(0, 30);
+        constexpr uint64_t origin_x = 30, origin_y = 0;
+
+        /* move the cursor to the origin */
+        move(origin_y, origin_x);
+
+        /* for - iterate over content_current_dir */
         for (std::vector<boost::filesystem::path>::iterator it = content_current_dir.begin();
              it < content_current_dir.end(); it++)
         {
+            /* if - current selected entry to be rendered */
             if (selected_entry == *it)
             {
-                attron(COLOR_PAIR(2));
+                /* change font color to green */
+                attron(COLOR_PAIR(COLOR_SCHEMS::SELECTED));
             }
+            /* end if - current selected entry to be rendered */
+
             addnstr(boost::filesystem::relative(*it, current_dir).native().c_str(), 29);
-            attron(COLOR_PAIR(1));
+
+            /* reset font color to default */
+            attron(COLOR_PAIR(COLOR_SCHEMS::DEFAULT));
+
+            /* re-adjust the cursor */
             move(it - content_current_dir.begin() + 1, 30);
         }
+        /* end for - iterate over content_current_dir */
     });
     ui::component preview_tab(
         [&content_child_dir, &file_preview, &directory_selected, &selected_entry, &win]() -> void {
@@ -99,7 +135,7 @@ int main(int argc, char** argv)
             move(origin_y, origin_x);
 
             /* set the color mpde to default */
-            attron(COLOR_PAIR(1));
+            attron(COLOR_PAIR(COLOR_SCHEMS::DEFAULT));
 
             /* if - is a directory currently selected */
             if (directory_selected)
@@ -109,6 +145,8 @@ int main(int argc, char** argv)
                      it < content_child_dir.end(); it++)
                 {
                     addnstr(boost::filesystem::relative(*it, selected_entry).native().c_str(), 29);
+
+                    /* re-adjust the cursor */
                     move(it - content_child_dir.begin() + 1, origin_x);
                 }
                 /* end for - iterate over every entry in the selected directory */
