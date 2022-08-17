@@ -93,36 +93,53 @@ int main(int argc, char** argv)
     });
     ui::component preview_tab(
         [&content_child_dir, &file_preview, &directory_selected, &selected_entry, &win]() -> void {
-            move(0, 60);
+            constexpr uint64_t origin_x = 60, origin_y = 0;
+
+            /* move the cursor to the origin */
+            move(origin_y, origin_x);
+
+            /* set the color mpde to default */
             attron(COLOR_PAIR(1));
+
+            /* if - is a directory currently selected */
             if (directory_selected)
             {
+                /* for - iterate over every entry in the selected directory */
                 for (std::vector<boost::filesystem::path>::iterator it = content_child_dir.begin();
                      it < content_child_dir.end(); it++)
                 {
-                    attron(COLOR_PAIR(1));
                     addnstr(boost::filesystem::relative(*it, selected_entry).native().c_str(), 29);
-                    move(it - content_child_dir.begin() + 1, 60);
+                    move(it - content_child_dir.begin() + 1, origin_x);
                 }
+                /* end for - iterate over every entry in the selected directory */
             }
             else
             {
                 uint64_t height = 0, width = 0, line_break_counts = 0, char_line_count = 0;
-                move(0, 60);
+                /* get the terminal size */
                 getmaxyx(win, height, width);
+
+                /* for - iterate over every char in the preview */
                 for (auto&& ch : file_preview)
                 {
+                    /* if - char is line break */
                     if (ch == '\n')
                     {
                         line_break_counts++;
                         char_line_count = 0;
                         continue;
                     }
-                    if (char_line_count > width - 60 - 1)
+                    /* end if - char is line break */
+
+                    /* if - gonna overflow terminal */
+                    if (char_line_count > width - origin_x - 1)
                     {
                         line_break_counts++;
                         char_line_count = 4;
                     }
+                    /* end if - gonna overflow terminal */
+
+                    /* re-adjust the cursor */
                     move(line_break_counts, 60 + char_line_count);
                     addch(ch);
                     char_line_count++;
@@ -131,7 +148,9 @@ int main(int argc, char** argv)
                         break;
                     }
                 }
+                /* end for - iterate over every char in the preview */
             }
+            /* end if - is a directory currently selected */
         });
 
     /* create the component tree and add all components */
