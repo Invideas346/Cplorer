@@ -18,6 +18,7 @@ namespace fs
             NO_ERROR = 0x0,
             GENERAL_ERROR = 0x1,
             INVALID_ARGUMENT = 0x2 | GENERAL_ERROR,
+            PATH_NOT_DIR = 0x04 | GENERAL_ERROR | INVALID_ARGUMENT
         };
 
         void print();

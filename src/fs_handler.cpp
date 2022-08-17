@@ -36,7 +36,7 @@ namespace fs
         if (boost::filesystem::is_directory(test) == false)
         {
             PLOG_DEBUG << "Passed in path is not a directory";
-            SET_ERROR(error, error::INVALID_ARGUMENT, "Passed in path is not a directory");
+            SET_ERROR(error, error::PATH_NOT_DIR, "Passed in path is not a directory");
             return {};
         }
         /* end if - is passed in path a directory */
