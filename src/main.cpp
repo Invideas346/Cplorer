@@ -168,7 +168,15 @@ int main(int argc, char** argv)
                 addnstr(
                     boost::filesystem::relative(*it, current_dir.parent_path()).native().c_str(),
                     29);
-
+                uint32_t path_length =
+                    boost::filesystem::relative(*it, current_dir.parent_path()).native().size();
+                if (path_length < 28)
+                {
+                    for (size_t i = path_length; i < 28; i++)
+                    {
+                        addch(' ');
+                    }
+                }
                 /* re-adjust the cursor */
                 move(it - content_parent_dir.begin() + 1, 0);
             }
@@ -189,7 +197,15 @@ int main(int argc, char** argv)
                 COLOR_SCHEME scheme = determin_COLOR_SCHEME(*it, *it == selected_entry);
                 attron(COLOR_PAIR(scheme));
                 addnstr(boost::filesystem::relative(*it, current_dir).native().c_str(), 29);
-
+                uint32_t path_length =
+                    boost::filesystem::relative(*it, current_dir.parent_path()).native().size();
+                if (path_length < 28)
+                {
+                    for (size_t i = path_length; i < 28; i++)
+                    {
+                        addch(' ');
+                    }
+                }
                 /* re-adjust the cursor */
                 move(it - content_current_dir.begin() + 1, 30);
             }
@@ -214,6 +230,17 @@ int main(int argc, char** argv)
                     attron(COLOR_PAIR(scheme));
 
                     addnstr(boost::filesystem::relative(*it, selected_entry).native().c_str(), 29);
+                    uint32_t path_length =
+                        boost::filesystem::relative(*it, selected_entry.parent_path())
+                            .native()
+                            .size();
+                    if (path_length < 28)
+                    {
+                        for (size_t i = path_length; i < 28; i++)
+                        {
+                            addch(' ');
+                        }
+                    }
 
                     /* re-adjust the cursor */
                     move(it - content_child_dir.begin() + 1, origin_x);
