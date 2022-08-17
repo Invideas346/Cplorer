@@ -19,6 +19,26 @@ namespace fs
         }
     }
 
+    std::vector<boost::filesystem::path> sort_paths(std::vector<boost::filesystem::path> paths)
+    {
+        std::vector<boost::filesystem::path> sorted_vector;
+        for (uint32_t i = 0; i < paths.size(); i++)
+        {
+            if (boost::filesystem::is_directory(paths[i]))
+            {
+                sorted_vector.push_back(paths[i]);
+            }
+        }
+        for (uint32_t i = 0; i < paths.size(); i++)
+        {
+            if (!boost::filesystem::is_directory(paths[i]))
+            {
+                sorted_vector.push_back(paths[i]);
+            }
+        }
+        return sorted_vector;
+    }
+
     std::vector<boost::filesystem::path> get_dir_content(const char* path,
                                                          std::optional<error> error)
     {
@@ -52,6 +72,7 @@ namespace fs
         /* end for - iterate over all director entries */
 
         SET_ERROR(error, error::NO_ERROR);
+        m_children = sort_paths(m_children);
         return m_children;
     }
 
@@ -80,6 +101,7 @@ namespace fs
         /* end for - iterate over all director entries */
 
         SET_ERROR(error, error::NO_ERROR);
+        m_children = sort_paths(m_children);
         return m_children;
     }
 

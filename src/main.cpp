@@ -142,6 +142,14 @@ int main(int argc, char** argv)
 
         /* move the cursor to the origin */
         move(origin_y, origin_x);
+        if (current_dir.parent_path() != content_parent_dir[0])
+        {
+            auto iter = std::find_if(content_parent_dir.begin(), content_parent_dir.end(),
+                                     [&current_dir](const boost::filesystem::path& entry) -> bool {
+                                         return entry == current_dir;
+                                     });
+            std::swap(content_parent_dir[0], *iter);
+        }
 
         /* for - iterate ocer content_parent_dir */
         for (std::vector<boost::filesystem::path>::iterator it = content_parent_dir.begin();

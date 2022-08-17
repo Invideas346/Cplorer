@@ -27,6 +27,8 @@ namespace fs
         CODE ec = NO_ERROR;
     };
 
+    std::vector<boost::filesystem::path> sort_paths(std::vector<boost::filesystem::path> paths);
+
     std::vector<boost::filesystem::path> get_dir_content(const char* path,
                                                          std::optional<error> error);
     std::vector<boost::filesystem::path> get_dir_content(const std::string& path,
