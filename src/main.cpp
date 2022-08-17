@@ -14,15 +14,65 @@
 #include <plog/Log.h>
 #include "plog/Initializers/RollingFileInitializer.h"
 
-enum struct COLOR_SCHEMS : uint16_t
+enum struct COLOR_SCHEME : uint16_t
 {
-    DEFAULT = 1,
-    SELECTED,
-
-    TEXT_FILE,
+    TEXT_FILE = 1,
     BINARY_FILE,
-    DIRECTORY
+    DIRECTORY,
+    PNG_FILE,
+
+    TEXT_FILE_SELECTED,
+    BINARY_FILE_SELECTED,
+    DIRECTORY_SELECTED,
+    PNG_FILE_SELECTED,
+
+    DEFAULT_TEXT
 };
+
+static inline COLOR_SCHEME determin_COLOR_SCHEME(boost::filesystem::path path,
+                                                 std::optional<bool> is_selected)
+{
+    if (!is_selected.value())
+    {
+        if (boost::filesystem::is_regular_file(path))
+        {
+            return COLOR_SCHEME::TEXT_FILE;
+        }
+        else if (boost::filesystem::is_directory(path))
+        {
+            return COLOR_SCHEME::DIRECTORY;
+        }
+        else if (boost::filesystem::extension(path) == "png" ||
+                 boost::filesystem::extension(path) == "PNG")
+        {
+            return COLOR_SCHEME::PNG_FILE;
+        }
+        else
+        {
+            return COLOR_SCHEME::BINARY_FILE;
+        }
+    }
+    else
+    {
+        if (boost::filesystem::is_regular_file(path))
+        {
+            return COLOR_SCHEME::TEXT_FILE_SELECTED;
+        }
+        else if (boost::filesystem::is_directory(path))
+        {
+            return COLOR_SCHEME::DIRECTORY_SELECTED;
+        }
+        else if (boost::filesystem::extension(path) == "png" ||
+                 boost::filesystem::extension(path) == "PNG")
+        {
+            return COLOR_SCHEME::PNG_FILE_SELECTED;
+        }
+        else
+        {
+            return COLOR_SCHEME::BINARY_FILE_SELECTED;
+        }
+    }
+}
 
 int main(int argc, char** argv)
 {
@@ -52,8 +102,17 @@ int main(int argc, char** argv)
     start_color();
 
     /* initialize the color pairs */
-    init_pair((uint16_t) COLOR_SCHEMS::DEFAULT, COLOR_WHITE, COLOR_BLACK);
-    init_pair((uint16_t) COLOR_SCHEMS::SELECTED, COLOR_GREEN, COLOR_BLACK);
+    init_pair((uint16_t) COLOR_SCHEME::TEXT_FILE, COLOR_WHITE, COLOR_BLACK);
+    init_pair((uint16_t) COLOR_SCHEME::BINARY_FILE, COLOR_GREEN, COLOR_BLACK);
+    init_pair((uint16_t) COLOR_SCHEME::DIRECTORY, COLOR_BLUE, COLOR_BLACK);
+    init_pair((uint16_t) COLOR_SCHEME::PNG_FILE, COLOR_YELLOW, COLOR_BLACK);
+
+    init_pair((uint16_t) COLOR_SCHEME::TEXT_FILE_SELECTED, COLOR_BLACK, COLOR_WHITE);
+    init_pair((uint16_t) COLOR_SCHEME::BINARY_FILE_SELECTED, COLOR_BLACK, COLOR_GREEN);
+    init_pair((uint16_t) COLOR_SCHEME::DIRECTORY_SELECTED, COLOR_BLACK, COLOR_BLUE);
+    init_pair((uint16_t) COLOR_SCHEME::PNG_FILE_SELECTED, COLOR_BLACK, COLOR_YELLOW);
+
+    init_pair((uint16_t) COLOR_SCHEME::DEFAULT_TEXT, COLOR_WHITE, COLOR_BLACK);
 
     /* get the content of the current and parent directory */
     current_dir = boost::filesystem::current_path();
@@ -84,13 +143,12 @@ int main(int argc, char** argv)
         /* move the cursor to the origin */
         move(origin_y, origin_x);
 
-        /* change font color to default */
-        attron(COLOR_PAIR(COLOR_SCHEMS::DEFAULT));
-
         /* for - iterate ocer content_parent_dir */
         for (std::vector<boost::filesystem::path>::iterator it = content_parent_dir.begin();
              it < content_parent_dir.end(); it++)
         {
+            COLOR_SCHEME scheme = determin_COLOR_SCHEME(*it, *it == current_dir);
+            attron(COLOR_PAIR(scheme));
             addnstr(boost::filesystem::relative(*it, current_dir.parent_path()).native().c_str(),
                     29);
 
@@ -109,18 +167,9 @@ int main(int argc, char** argv)
         for (std::vector<boost::filesystem::path>::iterator it = content_current_dir.begin();
              it < content_current_dir.end(); it++)
         {
-            /* if - current selected entry to be rendered */
-            if (selected_entry == *it)
-            {
-                /* change font color to green */
-                attron(COLOR_PAIR(COLOR_SCHEMS::SELECTED));
-            }
-            /* end if - current selected entry to be rendered */
-
+            COLOR_SCHEME scheme = determin_COLOR_SCHEME(*it, *it == selected_entry);
+            attron(COLOR_PAIR(scheme));
             addnstr(boost::filesystem::relative(*it, current_dir).native().c_str(), 29);
-
-            /* reset font color to default */
-            attron(COLOR_PAIR(COLOR_SCHEMS::DEFAULT));
 
             /* re-adjust the cursor */
             move(it - content_current_dir.begin() + 1, 30);
@@ -134,9 +183,6 @@ int main(int argc, char** argv)
             /* move the cursor to the origin */
             move(origin_y, origin_x);
 
-            /* set the color mpde to default */
-            attron(COLOR_PAIR(COLOR_SCHEMS::DEFAULT));
-
             /* if - is a directory currently selected */
             if (directory_selected)
             {
@@ -144,6 +190,9 @@ int main(int argc, char** argv)
                 for (std::vector<boost::filesystem::path>::iterator it = content_child_dir.begin();
                      it < content_child_dir.end(); it++)
                 {
+                    COLOR_SCHEME scheme = determin_COLOR_SCHEME(*it, *it == content_child_dir[0]);
+                    attron(COLOR_PAIR(scheme));
+
                     addnstr(boost::filesystem::relative(*it, selected_entry).native().c_str(), 29);
 
                     /* re-adjust the cursor */
@@ -156,6 +205,9 @@ int main(int argc, char** argv)
                 uint64_t height = 0, width = 0, line_break_counts = 0, char_line_count = 0;
                 /* get the terminal size */
                 getmaxyx(win, height, width);
+
+                /* set the color mpde to default */
+                attron(COLOR_PAIR(COLOR_SCHEME::DEFAULT_TEXT));
 
                 /* for - iterate over every char in the preview */
                 for (auto&& ch : file_preview)
@@ -190,6 +242,17 @@ int main(int argc, char** argv)
             }
             /* end if - is a directory currently selected */
         });
+    ui::component bottom_bar([&win, &selected_entry]() {
+        uint64_t width = 0, height = 0;
+
+        /* get current terminal size */
+        getmaxyx(win, height, width);
+
+        const uint64_t origin_x = 0, origin_y = height;
+
+        /* move the cursor to the origin */
+        move(origin_y, origin_x);
+    });
 
     /* create the component tree and add all components */
     ui::component_tree ui_tree;
