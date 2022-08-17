@@ -138,6 +138,11 @@ int main(int argc, char** argv)
 
     /* create all components */
     ui::component parent_tree([&content_parent_dir, &current_dir]() -> void {
+        if (!current_dir.has_parent_path())
+        {
+            return;
+        }
+
         constexpr uint64_t origin_x = 0, origin_y = 0;
 
         /* move the cursor to the origin */
