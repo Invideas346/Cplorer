@@ -74,6 +74,7 @@ static inline COLOR_SCHEME determin_COLOR_SCHEME(boost::filesystem::path path,
     }
 }
 
+/* TODO: add adequate comments to the keyboard input reaction */
 int main(int argc, char** argv)
 {
     plog::init(plog::debug, "Log.txt");
@@ -279,7 +280,7 @@ int main(int argc, char** argv)
         /* get console input */
         fetch_input(input);
 
-        /* if - was enter pressed */
+        /* if - was enter or l pressed */
         if (key_pressed_input(input, CR) || key_pressed_input(input, L_LOWER) ||
             key_pressed_input(input, L_UPPER))
         {
@@ -293,17 +294,19 @@ int main(int argc, char** argv)
                 if (boost::filesystem::is_directory(selected_entry))
                 {
                     content_child_dir = fs::get_dir_content(selected_entry, std::nullopt);
+                    directory_selected = true;
                 }
                 else
                 {
                     file_preview = fs::get_file_content_n(selected_entry, 1000, std::nullopt);
+                    directory_selected = false;
                 }
                 selected_entry_index = 0;
             }
             /* end if - is the current selected entry a directory */
             clear();
         }
-        /* end if - was enter pressed */
+        /* end if - was enter or l pressed */
 
         /* if - was h pressed */
         if (key_pressed_input(input, H_LOWER) || key_pressed_input(input, H_UPPER))
@@ -313,10 +316,11 @@ int main(int argc, char** argv)
             {
                 /* get the content of the current and parent directory */
                 content_child_dir = content_current_dir;
+                directory_selected = true;
+                selected_entry = selected_entry.parent_path();
                 current_dir = current_dir.parent_path();
                 content_current_dir = fs::get_dir_content(current_dir, std::nullopt);
                 content_parent_dir = fs::get_dir_content(current_dir.parent_path(), std::nullopt);
-                selected_entry = content_current_dir[0];
                 selected_entry_index = 0;
                 clear();
             }
