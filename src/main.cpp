@@ -34,6 +34,8 @@ int main(int argc, char** argv)
     /* set all ncurses functions to be non-blocking */
     nodelay(win, TRUE);
 
+    curs_set(0);
+
     /* disable echoing input to stdout */
     noecho();
 
@@ -64,39 +66,33 @@ int main(int argc, char** argv)
     /* end if - did error occure  */
 
     /* create all components */
-    ui::component parent_tree(
-        [&content_parent_dir, &current_dir]() -> void
+    ui::component parent_tree([&content_parent_dir, &current_dir]() -> void {
+        move(0, 0);
+        for (std::vector<boost::filesystem::path>::iterator it = content_parent_dir.begin();
+             it < content_parent_dir.end(); it++)
         {
-            move(0, 0);
-            for (std::vector<boost::filesystem::path>::iterator it = content_parent_dir.begin();
-                 it < content_parent_dir.end(); it++)
-            {
-                attron(COLOR_PAIR(1));
-                addnstr(
-                    boost::filesystem::relative(*it, current_dir.parent_path()).native().c_str(),
+            attron(COLOR_PAIR(1));
+            addnstr(boost::filesystem::relative(*it, current_dir.parent_path()).native().c_str(),
                     29);
-                move(it - content_parent_dir.begin() + 1, 0);
-            }
-        });
-    ui::component current_tree(
-        [&content_current_dir, &selected_entry, &current_dir]() -> void
+            move(it - content_parent_dir.begin() + 1, 0);
+        }
+    });
+    ui::component current_tree([&content_current_dir, &selected_entry, &current_dir]() -> void {
+        move(0, 30);
+        for (std::vector<boost::filesystem::path>::iterator it = content_current_dir.begin();
+             it < content_current_dir.end(); it++)
         {
-            move(0, 30);
-            for (std::vector<boost::filesystem::path>::iterator it = content_current_dir.begin();
-                 it < content_current_dir.end(); it++)
+            if (selected_entry == *it)
             {
-                if (selected_entry == *it)
-                {
-                    attron(COLOR_PAIR(2));
-                }
-                addnstr(boost::filesystem::relative(*it, current_dir).native().c_str(), 29);
-                attron(COLOR_PAIR(1));
-                move(it - content_current_dir.begin() + 1, 30);
+                attron(COLOR_PAIR(2));
             }
-        });
+            addnstr(boost::filesystem::relative(*it, current_dir).native().c_str(), 29);
+            attron(COLOR_PAIR(1));
+            move(it - content_current_dir.begin() + 1, 30);
+        }
+    });
     ui::component preview_tab(
-        [&content_child_dir, &file_preview, &directory_selected, &selected_entry]() -> void
-        {
+        [&content_child_dir, &file_preview, &directory_selected, &selected_entry, &win]() -> void {
             move(0, 60);
             attron(COLOR_PAIR(1));
             if (directory_selected)
@@ -111,25 +107,28 @@ int main(int argc, char** argv)
             }
             else
             {
-                uint64_t line_breaks = 0;
-                uint64_t chars_line = 0;
+                uint64_t height = 0, width = 0, line_break_counts = 0, char_line_count = 0;
                 move(0, 60);
+                getmaxyx(win, height, width);
                 for (auto&& ch : file_preview)
                 {
                     if (ch == '\n')
                     {
-                        line_breaks++;
-                        move(line_breaks, 60);
+                        line_break_counts++;
+                        char_line_count = 0;
                         continue;
                     }
-                    addch(ch);
-                    chars_line++;
-                    if (chars_line > 200)
+                    if (char_line_count > width - 60 - 1)
                     {
-                        line_breaks++;
-                        move(line_breaks, 60);
-                        addstr("        ");
-                        chars_line = 8;
+                        line_break_counts++;
+                        char_line_count = 4;
+                    }
+                    move(line_break_counts, 60 + char_line_count);
+                    addch(ch);
+                    char_line_count++;
+                    if (line_break_counts > height - 1)
+                    {
+                        break;
                     }
                 }
             }
