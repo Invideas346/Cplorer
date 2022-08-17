@@ -138,60 +138,66 @@ int main(int argc, char** argv)
     /* end if - did error occure  */
 
     /* create all components */
-    ui::component parent_tree([&content_parent_dir, &current_dir]() -> void {
-        if (!current_dir.has_parent_path())
+    ui::component parent_tree(
+        [&content_parent_dir, &current_dir]() -> void
         {
-            return;
-        }
+            if (!current_dir.has_parent_path())
+            {
+                return;
+            }
 
-        constexpr uint64_t origin_x = 0, origin_y = 0;
+            constexpr uint64_t origin_x = 0, origin_y = 0;
 
-        /* move the cursor to the origin */
-        move(origin_y, origin_x);
-        if (current_dir.parent_path() != content_parent_dir[0])
-        {
-            auto iter = std::find_if(content_parent_dir.begin(), content_parent_dir.end(),
-                                     [&current_dir](const boost::filesystem::path& entry) -> bool {
-                                         return entry == current_dir;
-                                     });
-            std::swap(content_parent_dir[0], *iter);
-        }
+            /* move the cursor to the origin */
+            move(origin_y, origin_x);
+            if (current_dir.parent_path() != content_parent_dir[0])
+            {
+                auto iter =
+                    std::find_if(content_parent_dir.begin(), content_parent_dir.end(),
+                                 [&current_dir](const boost::filesystem::path& entry) -> bool
+                                 { return entry == current_dir; });
+                std::swap(content_parent_dir[0], *iter);
+            }
 
-        /* for - iterate ocer content_parent_dir */
-        for (std::vector<boost::filesystem::path>::iterator it = content_parent_dir.begin();
-             it < content_parent_dir.end(); it++)
-        {
-            COLOR_SCHEME scheme = determin_COLOR_SCHEME(*it, *it == current_dir);
-            attron(COLOR_PAIR(scheme));
-            addnstr(boost::filesystem::relative(*it, current_dir.parent_path()).native().c_str(),
+            /* for - iterate ocer content_parent_dir */
+            for (std::vector<boost::filesystem::path>::iterator it = content_parent_dir.begin();
+                 it < content_parent_dir.end(); it++)
+            {
+                COLOR_SCHEME scheme = determin_COLOR_SCHEME(*it, *it == current_dir);
+                attron(COLOR_PAIR(scheme));
+                addnstr(
+                    boost::filesystem::relative(*it, current_dir.parent_path()).native().c_str(),
                     29);
 
-            /* re-adjust the cursor */
-            move(it - content_parent_dir.begin() + 1, 0);
-        }
-        /* end for - iterate ocer content_parent_dir */
-    });
-    ui::component current_tree([&content_current_dir, &selected_entry, &current_dir]() -> void {
-        constexpr uint64_t origin_x = 30, origin_y = 0;
-
-        /* move the cursor to the origin */
-        move(origin_y, origin_x);
-
-        /* for - iterate over content_current_dir */
-        for (std::vector<boost::filesystem::path>::iterator it = content_current_dir.begin();
-             it < content_current_dir.end(); it++)
+                /* re-adjust the cursor */
+                move(it - content_parent_dir.begin() + 1, 0);
+            }
+            /* end for - iterate ocer content_parent_dir */
+        });
+    ui::component current_tree(
+        [&content_current_dir, &selected_entry, &current_dir]() -> void
         {
-            COLOR_SCHEME scheme = determin_COLOR_SCHEME(*it, *it == selected_entry);
-            attron(COLOR_PAIR(scheme));
-            addnstr(boost::filesystem::relative(*it, current_dir).native().c_str(), 29);
+            constexpr uint64_t origin_x = 30, origin_y = 0;
 
-            /* re-adjust the cursor */
-            move(it - content_current_dir.begin() + 1, 30);
-        }
-        /* end for - iterate over content_current_dir */
-    });
+            /* move the cursor to the origin */
+            move(origin_y, origin_x);
+
+            /* for - iterate over content_current_dir */
+            for (std::vector<boost::filesystem::path>::iterator it = content_current_dir.begin();
+                 it < content_current_dir.end(); it++)
+            {
+                COLOR_SCHEME scheme = determin_COLOR_SCHEME(*it, *it == selected_entry);
+                attron(COLOR_PAIR(scheme));
+                addnstr(boost::filesystem::relative(*it, current_dir).native().c_str(), 29);
+
+                /* re-adjust the cursor */
+                move(it - content_current_dir.begin() + 1, 30);
+            }
+            /* end for - iterate over content_current_dir */
+        });
     ui::component preview_tab(
-        [&content_child_dir, &file_preview, &directory_selected, &selected_entry, &win]() -> void {
+        [&content_child_dir, &file_preview, &directory_selected, &selected_entry, &win]() -> void
+        {
             constexpr uint64_t origin_x = 60, origin_y = 0;
 
             /* move the cursor to the origin */
@@ -256,17 +262,19 @@ int main(int argc, char** argv)
             }
             /* end if - is a directory currently selected */
         });
-    ui::component bottom_bar([&win, &selected_entry]() {
-        uint64_t width = 0, height = 0;
+    ui::component bottom_bar(
+        [&win, &selected_entry]()
+        {
+            uint64_t width = 0, height = 0;
 
-        /* get current terminal size */
-        getmaxyx(win, height, width);
+            /* get current terminal size */
+            getmaxyx(win, height, width);
 
-        const uint64_t origin_x = 0, origin_y = height;
+            const uint64_t origin_x = 0, origin_y = height;
 
-        /* move the cursor to the origin */
-        move(origin_y, origin_x);
-    });
+            /* move the cursor to the origin */
+            move(origin_y, origin_x);
+        });
 
     /* create the component tree and add all components */
     ui::component_tree ui_tree;
