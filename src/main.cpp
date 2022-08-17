@@ -320,8 +320,15 @@ int main(int argc, char** argv)
                 selected_entry = selected_entry.parent_path();
                 current_dir = current_dir.parent_path();
                 content_current_dir = fs::get_dir_content(current_dir, std::nullopt);
+                for (std::vector<boost::filesystem::path>::iterator it =
+                         content_current_dir.begin();
+                     it < content_current_dir.end(); it++)
+                {
+                    auto found_iter = std::find(content_current_dir.begin(),
+                                                content_current_dir.end(), selected_entry);
+                    selected_entry_index = found_iter - content_current_dir.begin();
+                }
                 content_parent_dir = fs::get_dir_content(current_dir.parent_path(), std::nullopt);
-                selected_entry_index = 0;
                 clear();
             }
             /* end if - has the current directory a parent directory */
