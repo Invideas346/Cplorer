@@ -205,9 +205,6 @@ namespace fs
         }
         /* end if - path pointing to regular file */
 
-        /* allocate enough memory */
-        std::string data;
-        data.reserve(n);
         boost::filesystem::ifstream fs{path};
 
         /* if - check if the file stream could open */
@@ -219,13 +216,22 @@ namespace fs
         }
         /* end if - check if the file stream could open */
 
+        uint64_t left_file_size = boost::filesystem::file_size(path);
+        if (left_file_size < n)
+        {
+            n = left_file_size;
+        }
+        /* allocate enough memory */
+        std::string data;
+        data.reserve(n);
         constexpr uint64_t CHUNK_SIZE = 4096;
-        char* buffer = new char[n];
+        char* buffer = new char[n + 1];
         uint64_t chunk_cntr = 0;
 
-        uint64_t left_file_size = boost::filesystem::file_size(path);
+        /* if - file smaller then requested amount or bas chunk size */
         if (left_file_size < n || left_file_size < CHUNK_SIZE)
         {
+            /* if - requested amount smaller then file */
             if (n < left_file_size)
             {
                 fs.read(buffer, n);
@@ -234,6 +240,7 @@ namespace fs
             {
                 fs.read(buffer, left_file_size);
             }
+            /* end if - requested amount smaller then file */
         }
         else
         {
@@ -246,6 +253,7 @@ namespace fs
             fs.read(buffer + chunk_cntr * CHUNK_SIZE, n - chunk_cntr * CHUNK_SIZE);
             /* while - read till eof is reached */
         }
+        /* end if - file smaller then requested amount or bas chunk size */
 
         fs.close();
         buffer[n + 1] = '\0';
@@ -267,9 +275,6 @@ namespace fs
         }
         /* end if - path pointing to regular file */
 
-        /* allocate enough memory */
-        std::string data;
-        data.reserve(n);
         boost::filesystem::ifstream fs{path};
 
         /* if - check if the file stream could open */
@@ -281,11 +286,19 @@ namespace fs
         }
         /* end if - check if the file stream could open */
 
+        uint64_t left_file_size = boost::filesystem::file_size(path);
+        if (left_file_size < n)
+        {
+            n = left_file_size;
+        }
+
+        /* allocate enough memory */
+        std::string data;
+        data.reserve(n);
         constexpr uint64_t CHUNK_SIZE = 4096;
         char* buffer = new char[n + 1];
         uint64_t chunk_cntr = 0;
 
-        uint64_t left_file_size = boost::filesystem::file_size(path);
         if (left_file_size < n || left_file_size < CHUNK_SIZE)
         {
             if (n < left_file_size)

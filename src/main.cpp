@@ -327,6 +327,7 @@ int main(int argc, char** argv)
         {
             /* if - is the current selected entry a directory */
             if (directory_selected)
+
             {
                 /* current content => parent content */
                 content_parent_dir = content_current_dir;
