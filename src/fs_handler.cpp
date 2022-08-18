@@ -179,7 +179,7 @@ namespace fs
         char buffer[CHUNK_SIZE] = {0};
 
         /* while - read till eof is reached */
-        while (fs.tellg() != fs.eof())
+        while (!fs.eof())
         {
             fs.read(buffer, CHUNK_SIZE);
         }
@@ -223,16 +223,32 @@ namespace fs
         char* buffer = new char[n];
         uint64_t chunk_cntr = 0;
 
-        /* while - read till eof is reached */
-        while (!fs.eof() && CHUNK_SIZE * chunk_cntr < n)
+        uint64_t left_file_size = boost::filesystem::file_size(path);
+        if (left_file_size < n || left_file_size < CHUNK_SIZE)
         {
-            fs.read(buffer + chunk_cntr * CHUNK_SIZE, n < CHUNK_SIZE ? n : CHUNK_SIZE);
-            chunk_cntr++;
+            if (n < left_file_size)
+            {
+                fs.read(buffer, n);
+            }
+            else
+            {
+                fs.read(buffer, left_file_size);
+            }
         }
-        /* while - read till eof is reached */
+        else
+        {
+            /* while - read till eof is reached */
+            while (!fs.eof() && CHUNK_SIZE * chunk_cntr + 1 < n)
+            {
+                fs.read(buffer + chunk_cntr * CHUNK_SIZE, n < CHUNK_SIZE ? n : CHUNK_SIZE);
+                chunk_cntr++;
+            }
+            fs.read(buffer + chunk_cntr * CHUNK_SIZE, n - chunk_cntr * CHUNK_SIZE);
+            /* while - read till eof is reached */
+        }
 
         fs.close();
-
+        buffer[n + 1] = '\0';
         data = buffer;
         delete[] buffer;
         SET_ERROR(error, error::NO_ERROR);
@@ -266,19 +282,35 @@ namespace fs
         /* end if - check if the file stream could open */
 
         constexpr uint64_t CHUNK_SIZE = 4096;
-        char* buffer = new char[n];
+        char* buffer = new char[n + 1];
         uint64_t chunk_cntr = 0;
 
-        /* while - read till eof is reached */
-        while (!fs.eof() && CHUNK_SIZE * chunk_cntr < n)
+        uint64_t left_file_size = boost::filesystem::file_size(path);
+        if (left_file_size < n || left_file_size < CHUNK_SIZE)
         {
-            fs.read(buffer + chunk_cntr * CHUNK_SIZE, n < CHUNK_SIZE ? n : CHUNK_SIZE);
-            chunk_cntr++;
+            if (n < left_file_size)
+            {
+                fs.read(buffer, n);
+            }
+            else
+            {
+                fs.read(buffer, left_file_size);
+            }
         }
-        /* while - read till eof is reached */
+        else
+        {
+            /* while - read till eof is reached */
+            while (!fs.eof() && CHUNK_SIZE * chunk_cntr + 1 < n)
+            {
+                fs.read(buffer + chunk_cntr * CHUNK_SIZE, n < CHUNK_SIZE ? n : CHUNK_SIZE);
+                chunk_cntr++;
+            }
+            fs.read(buffer + chunk_cntr * CHUNK_SIZE, n - chunk_cntr * CHUNK_SIZE);
+            /* while - read till eof is reached */
+        }
 
         fs.close();
-
+        buffer[n + 1] = '\0';
         data = buffer;
         delete[] buffer;
         SET_ERROR(error, error::NO_ERROR);
