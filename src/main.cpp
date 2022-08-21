@@ -206,7 +206,6 @@ int main(int argc, char** argv)
                 uint32_t path_length =
                     boost::filesystem::relative(*it, current_dir.parent_path()).native().size();
 
-                // How to insert the children count in the ui
                 if (boost::filesystem::is_directory(*it))
                 {
                     uint32_t digit_count = 0;
