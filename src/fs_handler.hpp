@@ -44,4 +44,8 @@ namespace fs
     std::string get_file_content_n(const std::string& path, uint64_t n, std::optional<error> error);
     std::string get_file_content_n(const boost::filesystem::path& path, uint64_t n,
                                    std::optional<error> error);
+
+    uint64_t get_children_count(const char* path, std::optional<error> error);
+    uint64_t get_children_count(const std::string& path, std::optional<error> error);
+    uint64_t get_children_count(const boost::filesystem::path& path, std::optional<error> error);
 } // namespace fs

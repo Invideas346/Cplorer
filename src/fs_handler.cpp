@@ -19,6 +19,31 @@ namespace fs
         }
     }
 
+    static inline uint64_t get_children_count_local(const boost::filesystem::path& path,
+                                                    std::optional<error> error)
+    {
+        if (!boost::filesystem::is_directory(path))
+        {
+            SET_ERROR(error, error::PATH_NOT_DIR);
+            return 0;
+        }
+
+        uint64_t count = 0;
+
+        /* get a directory iterator over the directory */
+        auto dir_iter = boost::filesystem::directory_iterator(path);
+
+        /* for - iterate over all director entries */
+        for (auto&& dir_entry : dir_iter)
+        {
+            count++;
+        }
+        /* end for - iterate over all director entries */
+
+        SET_ERROR(error, error::NO_ERROR);
+        return count;
+    }
+
     std::vector<boost::filesystem::path> sort_paths(std::vector<boost::filesystem::path> paths)
     {
         std::vector<boost::filesystem::path> sorted_vector;
@@ -245,7 +270,7 @@ namespace fs
         else
         {
             /* while - read till eof is reached */
-            while (!fs.eof() && CHUNK_SIZE * chunk_cntr + 1 < n)
+            while (!fs.eof() && CHUNK_SIZE * (chunk_cntr + 1) < n)
             {
                 fs.read(buffer + chunk_cntr * CHUNK_SIZE, n < CHUNK_SIZE ? n : CHUNK_SIZE);
                 chunk_cntr++;
@@ -313,7 +338,7 @@ namespace fs
         else
         {
             /* while - read till eof is reached */
-            while (!fs.eof() && CHUNK_SIZE * chunk_cntr + 1 < n)
+            while (!fs.eof() && CHUNK_SIZE * (chunk_cntr + 1) < n)
             {
                 fs.read(buffer + chunk_cntr * CHUNK_SIZE, n < CHUNK_SIZE ? n : CHUNK_SIZE);
                 chunk_cntr++;
@@ -328,5 +353,20 @@ namespace fs
         delete[] buffer;
         SET_ERROR(error, error::NO_ERROR);
         return data;
+    }
+
+    uint64_t get_children_count(const char* path, std::optional<error> error)
+    {
+        return get_children_count_local(boost::filesystem::path(path), error);
+    }
+
+    uint64_t get_children_count(const std::string& path, std::optional<error> error)
+    {
+        return get_children_count_local(boost::filesystem::path(path), error);
+    }
+
+    uint64_t get_children_count(const boost::filesystem::path& path, std::optional<error> error)
+    {
+        return get_children_count_local(path, error);
     }
 } // namespace fs

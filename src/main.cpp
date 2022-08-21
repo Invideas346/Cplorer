@@ -205,13 +205,48 @@ int main(int argc, char** argv)
                 addnstr(boost::filesystem::relative(*it, current_dir).native().c_str(), 29);
                 uint32_t path_length =
                     boost::filesystem::relative(*it, current_dir.parent_path()).native().size();
-                if (path_length < 28)
+
+                // How to insert the children count in the ui
+                if (boost::filesystem::is_directory(*it))
                 {
-                    for (size_t i = path_length; i < 28; i++)
+                    uint32_t digit_count = 0;
+                    uint32_t children_count = fs::get_children_count(*it, std::nullopt);
+                    for (uint32_t i = 1;; i *= 10)
                     {
-                        addch(' ');
+                        if (children_count / i >= 1)
+                        {
+                            digit_count++;
+                            continue;
+                        }
+                        break;
+                    }
+                    if (path_length < 28)
+                    {
+                        for (size_t i = path_length; i < 28; i++)
+                        {
+                            if (28 - i > digit_count)
+                            {
+                                addch(' ');
+                            }
+                            else
+                            {
+                                printw("%d", children_count);
+                                break;
+                            }
+                        }
                     }
                 }
+                else
+                {
+                    if (path_length < 28)
+                    {
+                        for (size_t i = path_length; i < 28; i++)
+                        {
+                            addch(' ');
+                        }
+                    }
+                }
+
                 /* re-adjust the cursor */
                 move(it - content_current_dir.begin() + 1, 30);
             }
@@ -302,7 +337,6 @@ int main(int argc, char** argv)
 
             /* get current terminal size */
             getmaxyx(win, height, width);
-
             const uint64_t origin_x = 0, origin_y = height;
 
             /* move the cursor to the origin */
@@ -314,6 +348,7 @@ int main(int argc, char** argv)
     ui_tree.add_comp(parent_tree);
     ui_tree.add_comp(current_tree);
     ui_tree.add_comp(preview_tab);
+    ui_tree.add_comp(bottom_bar);
 
     /* while - application loop */
     while (!should_close)
@@ -351,7 +386,7 @@ int main(int argc, char** argv)
                 else
                 {
                     file_preview.clear();
-                    file_preview = fs::get_file_content_n(selected_entry, 1000, std::nullopt);
+                    file_preview = fs::get_file_content_n(selected_entry, 5000, std::nullopt);
                     directory_selected = false;
                 }
                 /* end if - entry directory */
@@ -425,7 +460,7 @@ int main(int argc, char** argv)
                 {
                     /* try to get preview of text-file */
                     file_preview.clear();
-                    file_preview = fs::get_file_content_n(selected_entry, 1000, std::nullopt);
+                    file_preview = fs::get_file_content_n(selected_entry, 5000, std::nullopt);
                 }
                 /* end if - directory selected */
 
@@ -458,7 +493,7 @@ int main(int argc, char** argv)
                 {
                     /* try to get preview of text-file */
                     file_preview.clear();
-                    file_preview = fs::get_file_content_n(selected_entry, 1000, std::nullopt);
+                    file_preview = fs::get_file_content_n(selected_entry, 5000, std::nullopt);
                 }
                 /* end if - directory selected */
 
