@@ -25,7 +25,7 @@ namespace fs
     {
         if (boost::filesystem::is_directory(path) == false)
         {
-            PLOG_DEBUG << "Passed in path is not a directory";
+            LOG_DEBUG << "Passed in path is not a directory " + std::string(path.native().c_str());
             SET_ERROR(error, error::PATH_NOT_DIR, "Passed in path is not a directory");
             return 0;
         }
@@ -54,7 +54,7 @@ namespace fs
         /* if - is passed in path a directory */
         if (boost::filesystem::is_directory(path) == false)
         {
-            PLOG_DEBUG << "Passed in path is not a directory";
+            LOG_DEBUG << "Passed in path is not a directory " + std::string(path.native().c_str());
             SET_ERROR(error, error::INVALID_ARGUMENT, "Passed in path is not a directory");
             return {};
         }
@@ -81,7 +81,7 @@ namespace fs
         /* if - path pointing to regular file */
         if (boost::filesystem::is_regular_file(path) == false)
         {
-            PLOG_DEBUG << "Passed in path is not a file " + std::string(path.native().c_str());
+            LOG_DEBUG << "Passed in path is not a file " + std::string(path.native().c_str());
             SET_ERROR(error, error::INVALID_ARGUMENT, "Passed in path is not a file");
             return "";
         }
@@ -95,7 +95,7 @@ namespace fs
         /* if - check if the file stream could open */
         if (fs.is_open() == false)
         {
-            PLOG_DEBUG << "Could not open filestream " + std::string(path.native().c_str());
+            LOG_DEBUG << "Could not open filestream " + std::string(path.native().c_str());
             SET_ERROR(error, error::GENERAL_ERROR, "Could not open filestream");
             return "";
         }
@@ -122,7 +122,7 @@ namespace fs
         /* if - path pointing to regular file */
         if (boost::filesystem::is_regular_file(path) == false)
         {
-            PLOG_DEBUG << "Passed in path is not a file " << path;
+            LOG_DEBUG << "Passed in path is not a file " << std::string(path.native().c_str());
             SET_ERROR(error, error::INVALID_ARGUMENT, "Passed in path is not a file");
             return "";
         }
@@ -133,7 +133,7 @@ namespace fs
         /* if - check if the file stream could open */
         if (fs.is_open() == false)
         {
-            PLOG_DEBUG << "Could not open filestream " << path;
+            LOG_DEBUG << "Could not open filestream " << std::string(path.native().c_str());
             SET_ERROR(error, error::GENERAL_ERROR, "Could not open filestream");
             return "";
         }

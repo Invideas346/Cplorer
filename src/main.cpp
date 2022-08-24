@@ -75,7 +75,6 @@ static inline COLOR_SCHEME determin_COLOR_SCHEME(boost::filesystem::path path,
     }
 }
 
-/* TODO: add adequate comments to the keyboard input reaction */
 int main(int argc, char** argv)
 {
     plog::init(plog::debug, "Log.txt");
