@@ -146,7 +146,7 @@ namespace fs
 
         /* allocate enough memory */
         std::string data;
-        data.reserve(n);
+        data.reserve(n + 1);
         constexpr uint64_t CHUNK_SIZE = 4096;
         char* buffer = new char[n + 1];
         uint64_t chunk_cntr = 0;
@@ -175,7 +175,7 @@ namespace fs
         }
 
         fs.close();
-        buffer[n + 1] = '\0';
+        buffer[n] = '\0';
         data = buffer;
         delete[] buffer;
         SET_ERROR(error, error::NO_ERROR);
