@@ -88,7 +88,7 @@ namespace fs
         /* allocate enough memory */
         std::string data;
         data.reserve(boost::filesystem::file_size(path));
-        boost::filesystem::fstream fs{path};
+        std::fstream fs{path};
 
         /* if - check if the file stream could open */
         if (!fs.is_open())

@@ -5,6 +5,7 @@
 #include <vector>
 #include <string>
 #include <optional>
+#include <fstream>
 
 /*<----------------- Library ----------------->*/
 #include <boost/filesystem.hpp>
