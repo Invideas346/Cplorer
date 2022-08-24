@@ -128,7 +128,7 @@ namespace fs
         }
         /* end if - path pointing to regular file */
 
-        boost::filesystem::ifstream fs{path};
+        std::fstream fs{path};
 
         /* if - check if the file stream could open */
         if (fs.is_open() == false)
