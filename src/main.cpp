@@ -96,6 +96,7 @@ int main(int argc, char** argv)
     /* set all ncurses functions to be non-blocking */
     nodelay(win, TRUE);
 
+    /* disable the cursor */
     curs_set(0);
 
     /* disable echoing input to stdout */

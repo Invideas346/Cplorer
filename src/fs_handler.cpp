@@ -23,9 +23,10 @@ namespace fs
     static inline uint64_t get_children_count_local(const boost::filesystem::path& path,
                                                     std::optional<error> error)
     {
-        if (!boost::filesystem::is_directory(path))
+        if (boost::filesystem::is_directory(path) == false)
         {
-            SET_ERROR(error, error::PATH_NOT_DIR);
+            PLOG_DEBUG << "Passed in path is not a directory";
+            SET_ERROR(error, error::PATH_NOT_DIR, "Passed in path is not a directory");
             return 0;
         }
 
@@ -78,7 +79,7 @@ namespace fs
                                                      std::optional<error> error)
     {
         /* if - path pointing to regular file */
-        if (!boost::filesystem::is_regular_file(path))
+        if (boost::filesystem::is_regular_file(path) == false)
         {
             PLOG_DEBUG << "Passed in path is not a file " + std::string(path.native().c_str());
             SET_ERROR(error, error::INVALID_ARGUMENT, "Passed in path is not a file");
@@ -92,7 +93,7 @@ namespace fs
         std::fstream fs{path};
 
         /* if - check if the file stream could open */
-        if (!fs.is_open())
+        if (fs.is_open() == false)
         {
             PLOG_DEBUG << "Could not open filestream " + std::string(path.native().c_str());
             SET_ERROR(error, error::GENERAL_ERROR, "Could not open filestream");
@@ -104,7 +105,7 @@ namespace fs
         char buffer[CHUNK_SIZE] = {0};
 
         /* while - read till eof is reached */
-        while (!fs.eof())
+        while (fs.eof() == false)
         {
             fs.read(buffer, CHUNK_SIZE);
         }
@@ -119,7 +120,7 @@ namespace fs
                                                        uint64_t n, std::optional<error> error)
     {
         /* if - path pointing to regular file */
-        if (!boost::filesystem::is_regular_file(path))
+        if (boost::filesystem::is_regular_file(path) == false)
         {
             PLOG_DEBUG << "Passed in path is not a file " << path;
             SET_ERROR(error, error::INVALID_ARGUMENT, "Passed in path is not a file");
@@ -130,7 +131,7 @@ namespace fs
         boost::filesystem::ifstream fs{path};
 
         /* if - check if the file stream could open */
-        if (!fs.is_open())
+        if (fs.is_open() == false)
         {
             PLOG_DEBUG << "Could not open filestream " << path;
             SET_ERROR(error, error::GENERAL_ERROR, "Could not open filestream");
@@ -153,14 +154,7 @@ namespace fs
 
         if (left_file_size < n || left_file_size < CHUNK_SIZE)
         {
-            if (n < left_file_size)
-            {
-                fs.read(buffer, n);
-            }
-            else
-            {
-                fs.read(buffer, left_file_size);
-            }
+            (n < left_file_size) ? fs.read(buffer, n) : fs.read(buffer, left_file_size);
         }
         else
         {
@@ -194,7 +188,7 @@ namespace fs
         }
         for (uint32_t i = 0; i < paths.size(); i++)
         {
-            if (!boost::filesystem::is_directory(paths[i]))
+            if (boost::filesystem::is_directory(paths[i]) == false)
             {
                 sorted_vector.push_back(paths[i]);
             }
