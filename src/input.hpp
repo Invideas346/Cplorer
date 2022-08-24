@@ -4,12 +4,14 @@
 
 #pragma once
 
-/*<================= Include =================>*/
-/*<----------------- System ------------------>*/
-#include <stdint.h>
+/*<===================== Includes =====================>*/
+/*<----------------- System-Includes ------------------>*/
+#include <cstdint>
 
-/*<--------------- Application --------------->*/
+/*<--------------- Application-Includes --------------->*/
 #include "ascii_table.hpp"
+
+/*<----------------- Library-Includes ----------------->*/
 
 typedef struct input
 {

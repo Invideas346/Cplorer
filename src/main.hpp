@@ -1,13 +1,14 @@
 #pragma once
 
-/*<================= Include =================>*/
-/*<----------------- System ------------------>*/
-#include <stdio.h>
-#include <stdint.h>
-#include <stdlib.h>
+/*<===================== Includes =====================>*/
+/*<----------------- System-Includes ------------------>*/
+#include <cstdio>
+#include <cstdint>
+#include <cstdlib>
 #include <optional>
 
-/*<----------------- Library ----------------->*/
+/*<-------------- Application-Includes ---------------->*/
+/*<----------------- Library-Includes ----------------->*/
 #include <boost/filesystem.hpp>
 #if WIN32
 #include <ncurses/ncurses.h>

@@ -2,15 +2,16 @@
 // Created by wolfgang on 07/08/2022.
 //
 
-/*<================= Include =================>*/
-/*<--------------- Application --------------->*/
+/*<===================== Includes =====================>*/
+/*<---------------- System-Includes ------------------->*/
+/*<-------------- Application-Includes ---------------->*/
 #include "main.hpp"
 #include "ascii_table.hpp"
 #include "input.hpp"
 #include "fs_handler.hpp"
 #include "cli.hpp"
 
-/*<----------------- Library ----------------->*/
+/*<----------------- Library-Includes ----------------->*/
 #include <plog/Log.h>
 #include "plog/Initializers/RollingFileInitializer.h"
 
@@ -100,9 +101,8 @@ int main(int argc, char** argv)
     /* disable echoing input to stdout */
     noecho();
 
-    start_color();
-
     /* initialize the color pairs */
+    start_color();
     init_pair((uint16_t) COLOR_SCHEME::TEXT_FILE, COLOR_WHITE, COLOR_BLACK);
     init_pair((uint16_t) COLOR_SCHEME::BINARY_FILE, COLOR_GREEN, COLOR_BLACK);
     init_pair((uint16_t) COLOR_SCHEME::DIRECTORY, COLOR_BLUE, COLOR_BLACK);
@@ -180,7 +180,7 @@ int main(int argc, char** argv)
                 /* if - does the row have to filled */
                 if (path_length < 28)
                 {
-                    /* for - file row */
+                   /* for - file row */
                     for (size_t i = path_length; i < 28; i++)
                     {
                         addch(' ');
