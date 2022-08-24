@@ -204,7 +204,7 @@ int main(int argc, char** argv)
                 attron(COLOR_PAIR(scheme));
                 addnstr(boost::filesystem::relative(*it, current_dir).native().c_str(), 29);
                 uint32_t path_length =
-                    boost::filesystem::relative(*it, current_dir.parent_path()).native().size();
+                    boost::filesystem::relative(*it, current_dir).native().size();
 
                 if (boost::filesystem::is_directory(*it))
                 {
