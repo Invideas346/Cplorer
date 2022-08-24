@@ -176,13 +176,19 @@ int main(int argc, char** argv)
                     29);
                 uint32_t path_length =
                     boost::filesystem::relative(*it, current_dir.parent_path()).native().size();
+                
+                /* if - does the row have to filled */
                 if (path_length < 28)
                 {
+                    /* for - file row */
                     for (size_t i = path_length; i < 28; i++)
                     {
                         addch(' ');
                     }
+                    /* end for - file row */
                 }
+                /* end if - does the row have to filled */
+
                 /* re-adjust the cursor */
                 move(it - content_parent_dir.begin() + 1, 0);
             }
@@ -206,23 +212,34 @@ int main(int argc, char** argv)
                 uint32_t path_length =
                     boost::filesystem::relative(*it, current_dir).native().size();
 
+                /* if - is entry directroy */
                 if (boost::filesystem::is_directory(*it))
                 {
                     uint32_t digit_count = 0;
                     uint32_t children_count = fs::get_children_count(*it, std::nullopt);
+
+                    /* for - count digets to be printed */
                     for (uint32_t i = 1;; i *= 10)
                     {
+                        /* if - still bigger */
                         if (children_count / i >= 1)
                         {
                             digit_count++;
                             continue;
                         }
+                        /* end if - still bigger */
+
                         break;
                     }
+                    /* end for - count digets to be printed */
+
+                    /* if - does the row have to filled */
                     if (path_length < 28)
                     {
+                        /* for - print whitespaces */
                         for (size_t i = path_length; i < 28; i++)
                         {
+                            /* if - print whitespace or child count */
                             if (28 - i > digit_count)
                             {
                                 addch(' ');
@@ -232,19 +249,27 @@ int main(int argc, char** argv)
                                 printw("%d", children_count);
                                 break;
                             }
+                            /* end if - print whitespace or child count */
                         }
+                        /* end for - print whitespaces */
                     }
+                    /* end if - does the row have to filled */
                 }
                 else
                 {
+                    /* if - does the row have to filled */
                     if (path_length < 28)
                     {
+                        /* for - print whitespaces */
                         for (size_t i = path_length; i < 28; i++)
                         {
                             addch(' ');
                         }
+                        /* end for - print whitespaces */
                     }
+                    /* end if - does the row have to filled */
                 }
+                /* end if - is entry directroy */
 
                 /* re-adjust the cursor */
                 move(it - content_current_dir.begin() + 1, 30);
@@ -274,13 +299,18 @@ int main(int argc, char** argv)
                         boost::filesystem::relative(*it, selected_entry.parent_path())
                             .native()
                             .size();
+
+                    /* if - does the row have to filled */
                     if (path_length < 28)
                     {
+                        /* for - print whitespaces */
                         for (size_t i = path_length; i < 28; i++)
                         {
                             addch(' ');
                         }
+                        /* end for - print whitespaces */
                     }
+                    /* end if - does the row have to filled */
 
                     /* re-adjust the cursor */
                     move(it - content_child_dir.begin() + 1, origin_x);
@@ -320,10 +350,13 @@ int main(int argc, char** argv)
                     move(line_break_counts, 60 + char_line_count);
                     addch(ch);
                     char_line_count++;
+
+                    /* if - screen already full */
                     if (line_break_counts > height - 1)
                     {
                         break;
                     }
+                    /* end if - screen already full */
                 }
                 /* end for - iterate over every char in the preview */
             }
