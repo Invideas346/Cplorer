@@ -620,7 +620,8 @@ int main(int argc, char** argv)
         /* end if - was k pressed */
 
         /* if - was ESC pressed */
-        if (key_pressed_input(input, ESC))
+        if (key_pressed_input(input, ESC) || key_pressed_input(input, Q_LOWER) ||
+            key_pressed_input(input, Q_UPPER))
         {
             should_close = true;
         }
