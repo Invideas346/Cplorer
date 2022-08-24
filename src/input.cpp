@@ -2,11 +2,12 @@
 // Created by wolfgang on 07/08/2022.
 //
 
-/*<================= Include =================>*/
-/*<--------------- Application --------------->*/
+/*<===================== Includes =====================>*/
+/*<----------------- System-Includes ------------------>*/
+/*<--------------- Application-Includes --------------->*/
 #include "input.hpp"
 
-/*<----------------- Library ----------------->*/
+/*<----------------- Library-Includes ----------------->*/
 #if _WIN32
 #include <ncurses/ncurses.h>
 #elif unix

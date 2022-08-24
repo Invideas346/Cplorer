@@ -1,13 +1,14 @@
 #pragma once
 
-/*<================= Include =================>*/
-/*<----------------- System ------------------>*/
+/*<===================== Includes =====================>*/
+/*<----------------- System-Includes ------------------>*/
 #include <vector>
 #include <string>
 #include <optional>
 #include <fstream>
 
-/*<----------------- Library ----------------->*/
+/*<-------------- Application-Includes ---------------->*/
+/*<----------------- Library-Includes ----------------->*/
 #include <boost/filesystem.hpp>
 
 namespace fs
