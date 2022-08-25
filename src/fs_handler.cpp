@@ -23,12 +23,14 @@ namespace fs
     static inline uint64_t get_children_count_local(const boost::filesystem::path& path,
                                                     std::optional<error> error)
     {
+        /* if - is passed in path a directory */
         if (boost::filesystem::is_directory(path) == false)
         {
             LOG_DEBUG << "Passed in path is not a directory " + std::string(path.native().c_str());
             SET_ERROR(error, error::PATH_NOT_DIR, "Passed in path is not a directory");
             return 0;
         }
+        /* end if - is passed in path a directory */
 
         uint64_t count = 0;
 
@@ -109,7 +111,7 @@ namespace fs
         {
             fs.read(buffer, CHUNK_SIZE);
         }
-        /* while - read till eof is reached */
+        /* end while - read till eof is reached */
 
         data = buffer;
         SET_ERROR(error, error::NO_ERROR);
@@ -139,37 +141,36 @@ namespace fs
         }
         /* end if - check if the file stream could open */
 
+        /* how many bytes schould be read */
         uint64_t left_file_size = boost::filesystem::file_size(path);
-        if (left_file_size < n)
-        {
-            n = left_file_size;
-        }
+        uint64_t to_read_bytes = (left_file_size < n) ? left_file_size : n;
 
         /* allocate enough memory */
         std::string data;
-        data.reserve(n + 1);
+        data.reserve(to_read_bytes + 1);
         constexpr uint64_t CHUNK_SIZE = 4096;
-        char* buffer = new char[n + 1];
+        char* buffer = new char[to_read_bytes + 1];
         uint64_t chunk_cntr = 0;
 
-        if (left_file_size < n || left_file_size < CHUNK_SIZE)
+        /* TODO: refactoring this mess */
+        if (left_file_size < to_read_bytes || left_file_size < CHUNK_SIZE)
         {
-            (n < left_file_size) ? fs.read(buffer, n) : fs.read(buffer, left_file_size);
+            (to_read_bytes < left_file_size) ? fs.read(buffer, to_read_bytes) : fs.read(buffer, left_file_size);
         }
         else
         {
             /* while - read till eof is reached */
-            while (!fs.eof() && CHUNK_SIZE * (chunk_cntr + 1) < n)
+            while (fs.eof() == false && CHUNK_SIZE * (chunk_cntr + 1) < to_read_bytes)
             {
-                fs.read(buffer + chunk_cntr * CHUNK_SIZE, n < CHUNK_SIZE ? n : CHUNK_SIZE);
+                fs.read(buffer + chunk_cntr * CHUNK_SIZE, to_read_bytes < CHUNK_SIZE ? to_read_bytes : CHUNK_SIZE);
                 chunk_cntr++;
             }
-            fs.read(buffer + chunk_cntr * CHUNK_SIZE, n - chunk_cntr * CHUNK_SIZE);
-            /* while - read till eof is reached */
+            /* end while - read till eof is reached */
+            fs.read(buffer + chunk_cntr * CHUNK_SIZE, to_read_bytes - chunk_cntr * CHUNK_SIZE);
         }
 
         fs.close();
-        buffer[n] = '\0';
+        buffer[to_read_bytes] = '\0';
         data = buffer;
         delete[] buffer;
         SET_ERROR(error, error::NO_ERROR);
@@ -179,20 +180,30 @@ namespace fs
     std::vector<boost::filesystem::path> sort_paths(std::vector<boost::filesystem::path> paths)
     {
         std::vector<boost::filesystem::path> sorted_vector;
+        /* for - iterate over all children */
         for (uint32_t i = 0; i < paths.size(); i++)
         {
+            /* if - is entry a directory */
             if (boost::filesystem::is_directory(paths[i]))
             {
                 sorted_vector.push_back(paths[i]);
             }
+            /* end if - is entry a directory */
         }
+        /* end for - iterate over all children */
+
+        /* for - iterate over all children */
         for (uint32_t i = 0; i < paths.size(); i++)
         {
+            /* if - is entry a directory */
             if (boost::filesystem::is_directory(paths[i]) == false)
             {
                 sorted_vector.push_back(paths[i]);
             }
+            /* end if - is entry a directory */
         }
+        /* end for - iterate over all children */
+
         return sorted_vector;
     }
 
