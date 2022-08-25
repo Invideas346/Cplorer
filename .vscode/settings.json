@@ -73,7 +73,12 @@
     "shared_mutex": "cpp",
     "*.ipp": "cpp",
     "codecvt": "cpp",
-    "source_location": "cpp"
+    "source_location": "cpp",
+    "forward_list": "cpp",
+    "valarray": "cpp",
+    "any": "cpp",
+    "ranges": "cpp",
+    "span": "cpp"
   },
   "cmake.configureOnOpen": true
 }
