@@ -42,11 +42,6 @@ enum struct COLOR_SCHEME : uint16_t
     DEFAULT_TEXT
 };
 
-struct vector2i
-{
-    int32_t x, y;
-};
-
 static inline COLOR_SCHEME determin_COLOR_SCHEME(boost::filesystem::path path,
                                                  std::optional<bool> is_selected)
 {
@@ -103,7 +98,7 @@ int main(int argc, char** argv)
     uint64_t selected_entry_index = 0;
     bool should_close = false;
     bool directory_selected = true;
-    vector2i cursor_pos = {0, 0};
+    ui::cursor cursor = {0, 0};
 
     input input = init_input();
 
@@ -157,12 +152,12 @@ int main(int argc, char** argv)
 
     /* create all components */
     ui::component parent_tree(
-        [&content_parent_dir, &current_dir, &win, &cursor_pos]() -> void
+        [&content_parent_dir, &current_dir, &win, &cursor]() -> void
         {
-            uint32_t width = 0, height = 0;
+            uint32_t win_width = 0, win_height = 0;
 
             /* get window heigth and width */
-            getmaxyx(win, height, width);
+            getmaxyx(win, win_height, win_width);
 
             /* if - no parent - abort */
             if (!current_dir.has_parent_path())
@@ -174,9 +169,7 @@ int main(int argc, char** argv)
             constexpr uint64_t origin_x = 0, origin_y = 0;
 
             /* move the cursor to the origin */
-            move(origin_y, origin_x);
-            cursor_pos.x = origin_x;
-            cursor_pos.y = origin_y;
+            cursor.move_abs(origin_x, origin_y);
 
             /* if - parent on top of parent tree */
             if (current_dir.parent_path() != content_parent_dir[0])
@@ -197,7 +190,7 @@ int main(int argc, char** argv)
                  it < content_parent_dir.end(); it++)
             {
                 /* if - line limit reached */
-                if (line_cnt > height - 2)
+                if (line_cnt > win_height - 2)
                 {
                     /* break in order to not overwrite the bottom bar */
                     break;
@@ -211,6 +204,7 @@ int main(int argc, char** argv)
                     29);
                 uint32_t path_length =
                     boost::filesystem::relative(*it, current_dir.parent_path()).native().size();
+                cursor.add_x(path_length);
 
                 /* if - does the row have to filled */
                 if (path_length < 28)
@@ -219,7 +213,7 @@ int main(int argc, char** argv)
                     for (size_t i = path_length; i < 28; i++)
                     {
                         addch(' ');
-                        cursor_pos.x++;
+                        cursor.add_x(1);
                     }
                     /* end for - file row */
                 }
@@ -228,26 +222,22 @@ int main(int argc, char** argv)
                 line_cnt++;
 
                 /* re-adjust the cursor */
-                move(it - content_parent_dir.begin() + 1, origin_x);
-                cursor_pos.y = it - content_parent_dir.begin();
-                cursor_pos.x = origin_x;
+                cursor.move_abs(origin_x, it - content_parent_dir.begin() + 1);
             }
             /* end for - iterate over content_parent_dir */
         });
     ui::component current_tree(
-        [&content_current_dir, &selected_entry, &current_dir, &win, &cursor_pos]() -> void
+        [&content_current_dir, &selected_entry, &current_dir, &win, &cursor]() -> void
         {
-            uint32_t width = 0, height = 0;
+            uint32_t win_width = 0, win_height = 0;
 
             /* get window heigth and width */
-            getmaxyx(win, height, width);
+            getmaxyx(win, win_height, win_width);
 
             constexpr uint64_t origin_x = 30, origin_y = 0;
 
             /* move the cursor to the origin */
-            move(origin_y, origin_x);
-            cursor_pos.x = origin_x;
-            cursor_pos.y = origin_y + 1;
+            cursor.move_abs(origin_x, origin_y);
 
             uint32_t line_cnt = 0;
 
@@ -256,7 +246,7 @@ int main(int argc, char** argv)
                  it < content_current_dir.end(); it++)
             {
                 /* if - line limit reached */
-                if (line_cnt > height - 2)
+                if (line_cnt > win_height - 2)
                 {
                     /* break in order to not overwrite the bottom bar */
                     break;
@@ -268,7 +258,7 @@ int main(int argc, char** argv)
                 addnstr(boost::filesystem::relative(*it, current_dir).native().c_str(), 29);
                 uint32_t path_length =
                     boost::filesystem::relative(*it, current_dir).native().size();
-                cursor_pos.x += path_length;
+                cursor.add_x(path_length);
 
                 /* if - is entry directroy */
                 if (boost::filesystem::is_directory(*it))
@@ -301,12 +291,12 @@ int main(int argc, char** argv)
                             if (28 - i > digit_cnt)
                             {
                                 addch(' ');
-                                cursor_pos.x++;
+                                cursor.add_x(1);
                             }
                             else
                             {
                                 printw("%d", children_cnt);
-                                cursor_pos.x += digit_cnt;
+                                cursor.add_x(digit_cnt);
                                 break;
                             }
                             /* end if - print whitespace or child count */
@@ -377,26 +367,26 @@ int main(int argc, char** argv)
                             if (28 - i > digit_cnt)
                             {
                                 addch(' ');
-                                cursor_pos.x++;
+                                cursor.add_x(1);
                             }
                             else
                             {
                                 switch (display_unit)
                                 {
                                 case 1:
-                                    move(cursor_pos.y, cursor_pos.x - 5);
+                                    cursor.move_rel(-5, 0);
                                     printw("%.1f KB", floating_point_val);
                                     break;
                                 case 2:
-                                    move(cursor_pos.y, cursor_pos.x - 5);
+                                    cursor.move_rel(-5, 0);
                                     printw("%.1f MB", floating_point_val);
                                     break;
                                 case 3:
-                                    move(cursor_pos.y, cursor_pos.x - 5);
+                                    cursor.move_rel(-5, 0);
                                     printw("%.1f GB", floating_point_val);
                                     break;
                                 default:
-                                    move(cursor_pos.y, cursor_pos.x - 2);
+                                    cursor.move_rel(-2, 0);
                                     printw("%lu B", file_size);
                                     break;
                                 }
@@ -413,28 +403,24 @@ int main(int argc, char** argv)
                 line_cnt++;
 
                 /* re-adjust the cursor */
-                move(it - content_current_dir.begin() + 1, origin_x);
-                cursor_pos.y = 1 + it - content_current_dir.begin();
-                cursor_pos.x = origin_x;
+                cursor.move_abs(origin_x, 1 + it - content_current_dir.begin());
             }
             /* end for - iterate over content_current_dir */
         });
     ui::component preview_tab(
         [&content_child_dir, &file_preview, &directory_selected, &selected_entry, &win,
-         &cursor_pos]() -> void
+         &cursor]() -> void
         {
-            uint32_t width = 0, height = 0;
+            uint32_t win_width = 0, win_height = 0;
             uint32_t line_cnt = 0;
 
             /* get window heigth and width */
-            getmaxyx(win, height, width);
+            getmaxyx(win, win_height, win_width);
 
             constexpr uint64_t origin_x = 60, origin_y = 0;
 
             /* move the cursor to the origin */
-            move(origin_y, origin_x);
-            cursor_pos.x = origin_x;
-            cursor_pos.y = origin_y;
+            cursor.move_abs(origin_x, origin_y);
 
             /* if - is a directory currently selected */
             if (directory_selected)
@@ -444,7 +430,7 @@ int main(int argc, char** argv)
                      it < content_child_dir.end(); it++)
                 {
                     /* if - line limit reached */
-                    if (line_cnt > height - 2)
+                    if (line_cnt > win_height - 2)
                     {
                         /* break in order to not overwrite the bottom bar */
                         break;
@@ -459,8 +445,7 @@ int main(int argc, char** argv)
                         boost::filesystem::relative(*it, selected_entry.parent_path())
                             .native()
                             .size();
-
-                    cursor_pos.x += path_length;
+                    cursor.add_x(path_length);
 
                     /* if - does the row have to filled */
                     if (path_length < 28)
@@ -469,7 +454,7 @@ int main(int argc, char** argv)
                         for (size_t i = path_length; i < 28; i++)
                         {
                             addch(' ');
-                            cursor_pos.x++;
+                            cursor.add_x(1);
                         }
                         /* end for - print whitespaces */
                     }
@@ -478,17 +463,15 @@ int main(int argc, char** argv)
                     line_cnt++;
 
                     /* re-adjust the cursor */
-                    move(it - content_child_dir.begin() + 1, origin_x);
-                    cursor_pos.x = origin_x;
-                    cursor_pos.y = it - content_child_dir.begin();
+                    cursor.move_abs(origin_x, it - content_child_dir.begin() + 1);
                 }
                 /* end for - iterate over every entry in the selected directory */
             }
             else
             {
-                uint64_t height = 0, width = 0, line_cnt = 0, char_line_cnt = 0;
+                uint64_t win_height = 0, win_width = 0, line_cnt = 0, char_line_cnt = 0;
                 /* get the terminal size */
-                getmaxyx(win, height, width);
+                getmaxyx(win, win_height, win_width);
 
                 /* set the color mpde to default */
                 attron(COLOR_PAIR(COLOR_SCHEME::DEFAULT_TEXT));
@@ -497,7 +480,7 @@ int main(int argc, char** argv)
                 for (auto&& ch : file_preview)
                 {
                     /* if - screen already full */
-                    if (line_cnt > height - 2)
+                    if (line_cnt > win_height - 2)
                     {
                         break;
                     }
@@ -513,7 +496,7 @@ int main(int argc, char** argv)
                     /* end if - char is line break */
 
                     /* if - gonna overflow terminal */
-                    if (char_line_cnt > width - origin_x - 1)
+                    if (char_line_cnt > win_width - origin_x - 1)
                     {
                         line_cnt++;
                         char_line_cnt = 4;
@@ -521,30 +504,28 @@ int main(int argc, char** argv)
                     /* end if - gonna overflow terminal */
 
                     /* re-adjust the cursor */
-                    move(line_cnt, 60 + char_line_cnt);
+                    cursor.move_abs(60 + char_line_cnt, line_cnt);
                     addch(ch);
                     char_line_cnt++;
-                    cursor_pos.x++;
+                    cursor.add_x(1);
                 }
                 /* end for - iterate over every char in the preview */
             }
             /* end if - is a directory currently selected */
         });
     ui::component bottom_bar(
-        [&win, &selected_entry, &directory_selected, &content_child_dir, &cursor_pos]()
+        [&win, &selected_entry, &directory_selected, &content_child_dir, &cursor]() -> void
         {
             std::string descriptor = "";
-            uint32_t width = 0, height = 0;
+            uint32_t win_width = 0, win_height = 0;
 
             /* get the terminal size */
-            getmaxyx(win, height, width);
+            getmaxyx(win, win_height, win_width);
 
-            const uint64_t origin_x = 0, origin_y = height - 1;
+            const uint64_t origin_x = 0, origin_y = win_height - 1;
 
             /* move the cursor to the origin */
-            move(origin_y, origin_x);
-            cursor_pos.x = origin_x;
-            cursor_pos.y = origin_y;
+            cursor.move_abs(origin_x, origin_y);
 
             /*
                 is_symblink has to called before because
@@ -619,7 +600,7 @@ int main(int argc, char** argv)
             /* print descriptor */
             attron(COLOR_PAIR(COLOR_SCHEME::DEFAULT_TEXT));
             printw("%s", descriptor.c_str());
-            cursor_pos.x = descriptor.size() + origin_x;
+            cursor.add_x(descriptor.size());
         });
 
     /* create the component tree and add all components */

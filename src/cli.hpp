@@ -16,6 +16,28 @@ typedef std::function<void()> render_func;
 
 namespace ui
 {
+    struct cursor
+    {
+      public:
+        cursor() = default;
+        cursor(int32_t x, int32_t y);
+
+        void set_x(int32_t x);
+        void set_y(int32_t y);
+
+        void add_x(int32_t x);
+        void add_y(int32_t y);
+
+        void move_rel(int32_t x, int32_t y);
+        void move_abs(int32_t x, int32_t y);
+
+        int32_t _x() const;
+        int32_t _y() const;
+
+      private:
+        int32_t x, y;
+    };
+
     struct component
     {
       public:
