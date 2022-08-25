@@ -1,5 +1,13 @@
 /*<===================== Includes =====================>*/
 /*<----------------- System-Includes ------------------>*/
+
+#if WIN32
+#elif unix
+#include <pwd.h>
+#include <grp.h>
+#include <sys/stat.h>
+#endif
+
 /*<--------------- Application-Includes --------------->*/
 #include "fs_handler.hpp"
 
@@ -176,6 +184,26 @@ namespace fs
         SET_ERROR(error, error::NO_ERROR);
         return data;
     }
+#if WIN32
+    std::tuple<std::string> get_dir_entry_group_owner_local(const boost::filesystem::path& path, std::optional<error> error)
+    {
+    }
+#elif unix
+    static inline std::tuple<std::string, std::string> get_dir_entry_group_owner_local(const boost::filesystem::path& path, std::optional<error> error)
+    {
+        if(boost::filesystem::exists(path) == false)
+        {
+            LOG_DEBUG << "Path does not point to file or directory " << std::string(path.native().c_str());
+            SET_ERROR(error, error::PATH_NOT_EXISTS, "path does not point to file or directory" + std::string(path.native().c_str()));
+            return {"", ""};
+        }
+        struct stat info;
+        stat(path.native().c_str(), &info);
+        struct passwd *pw = getpwuid(info.st_uid);
+        struct group  *gr = getgrgid(info.st_gid);
+        return {pw->pw_name, gr->gr_name};
+    }
+#endif
 
     std::vector<boost::filesystem::path> sort_paths(std::vector<boost::filesystem::path> paths)
     {
@@ -269,5 +297,22 @@ namespace fs
     uint64_t get_children_count(const boost::filesystem::path& path, std::optional<error> error)
     {
         return get_children_count_local(path, error);
+    }
+
+    std::tuple<std::string, std::string> get_dir_entry_group_owner(const char* path, std::optional<error> error)
+    {
+        return get_dir_entry_group_owner_local(boost::filesystem::path(path), error);
+    }
+
+    std::tuple<std::string, std::string> get_dir_entry_group_owner(const std::string& path, std::optional<error> error)
+    {
+        return get_dir_entry_group_owner_local(boost::filesystem::path(path), error);
+
+    }
+
+    std::tuple<std::string, std::string> get_dir_entry_group_owner(const boost::filesystem::path& path, std::optional<error> error)
+    {
+        return get_dir_entry_group_owner_local(path, error);
+
     }
 } // namespace fs
