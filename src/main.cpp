@@ -312,6 +312,7 @@ int main(int argc, char** argv)
         [&content_child_dir, &file_preview, &directory_selected, &selected_entry, &win]() -> void
         {
             uint32_t width = 0, height = 0;
+            uint32_t line_count = 0;
 
             /* get window heigth and width */
             getmaxyx(win, height, width);
@@ -320,8 +321,6 @@ int main(int argc, char** argv)
 
             /* move the cursor to the origin */
             move(origin_y, origin_x);
-
-            uint32_t line_count = 0;
 
             /* if - is a directory currently selected */
             if (directory_selected)
