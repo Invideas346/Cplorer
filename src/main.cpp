@@ -4,8 +4,12 @@
 
 /*<===================== Includes =====================>*/
 /*<---------------- System-Includes ------------------->*/
+#include <cstdio>
+#include <cstdint>
+#include <cstdlib>
+#include <optional>
+
 /*<-------------- Application-Includes ---------------->*/
-#include "main.hpp"
 #include "ascii_table.hpp"
 #include "input.hpp"
 #include "fs_handler.hpp"
@@ -14,6 +18,12 @@
 /*<----------------- Library-Includes ----------------->*/
 #include <plog/Log.h>
 #include <plog/Initializers/RollingFileInitializer.h>
+#include <boost/filesystem.hpp>
+#if WIN32
+#include <ncurses/ncurses.h>
+#elif unix
+#include <curses.h>
+#endif
 
 enum struct COLOR_SCHEME : uint16_t
 {
