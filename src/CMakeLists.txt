@@ -25,6 +25,9 @@ target_link_libraries(${PROJECT_NAME} cli)
 link_libraries(plog ${CMAKE_BINARY_DIR}/plog)
 include_directories(${CMAKE_SOURCE_DIR}/plog/include)
 
+link_libraries(json ${CMAKE_BINRAY_DIR}/json)
+include_directories(${CMAKE_SOURCE_DIR}/json/single_include)
+
 target_link_libraries(${PROJECT_NAME} 
   Boost::boost
   Boost::random

@@ -24,6 +24,7 @@
 #elif unix
 #include <curses.h>
 #endif
+#include <nlohmann/json.hpp>
 
 enum struct COLOR_SCHEME : uint16_t
 {

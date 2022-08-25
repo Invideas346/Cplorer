@@ -15,5 +15,5 @@ set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR} )
 file(COPY test_files DESTINATION .)
 
 add_subdirectory(plog)
-
+add_subdirectory(json)
 add_subdirectory(src)
