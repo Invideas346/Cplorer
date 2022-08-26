@@ -10,7 +10,6 @@
 #include <optional>
 
 /*<-------------- Application-Includes ---------------->*/
-#include "ascii_table.hpp"
 #include "input.hpp"
 #include "fs_handler.hpp"
 #include "cli.hpp"
@@ -26,7 +25,6 @@
 #elif unix
 #include <curses.h>
 #endif
-#include <nlohmann/json.hpp>
 
 enum struct COLOR_SCHEME : uint16_t
 {
