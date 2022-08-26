@@ -25,6 +25,9 @@ target_link_libraries(${PROJECT_NAME} cli)
 add_library(config config.hpp config.cpp)
 target_link_libraries(${PROJECT_NAME} config)
 
+add_library(application application.hpp application.cpp)
+target_link_libraries(${PROJECT_NAME} application)
+
 link_libraries(plog ${CMAKE_BINARY_DIR}/plog)
 include_directories(${CMAKE_SOURCE_DIR}/plog/include)
 

@@ -15,6 +15,7 @@
 #include "fs_handler.hpp"
 #include "cli.hpp"
 #include "config.hpp"
+#include "application.hpp"
 
 /*<----------------- Library-Includes ----------------->*/
 #include <plog/Log.h>
@@ -263,6 +264,10 @@ void init_colors_schemes()
 
 int main(int argc, char** argv)
 {
+    application app;
+    app.init();
+    app.loop();
+    app.deinit();
     plog::init(plog::debug, "Log.txt");
     fs::error error;
     std::vector<boost::filesystem::path> content_current_dir, content_parent_dir, content_child_dir;
