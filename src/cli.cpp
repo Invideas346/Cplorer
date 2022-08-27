@@ -32,11 +32,27 @@ namespace ui
     void cursor::add_x(int32_t x) { this->x += x; }
     void cursor::add_y(int32_t y) { this->y += y; }
 
-    component::component(const render_func& func) : render_callback(func) {}
+    component::component(uint8_t origin_x, uint8_t origin_y, uint8_t width, uint8_t height,
+                         const render_func& func)
+        : render_callback(func), origin_x(origin_x), origin_y(origin_y), width(width),
+          height(height)
+    {
+    }
 
     void component::assign_render_routine(render_func fun) { this->render_callback = fun; }
 
-    void component::render() const { this->render_callback(); }
+    void component::render() const { this->render_callback(*this); }
+
+    void component::update_resize(const WINDOW* win)
+    {
+        uint32_t win_height, win_width;
+
+        /* get the terminal size */
+        getmaxyx(win, win_height, win_width);
+
+        /* calucate new origin */
+        origin_x = 0, origin_y = win_height - 1;
+    }
 
     component_tree::component_tree(const std::vector<struct component>& components) {}
 
@@ -53,6 +69,14 @@ namespace ui
         for (auto& comp : comps)
         {
             comp.render();
+        }
+    }
+
+    void component_tree::update_resize(const WINDOW* win)
+    {
+        for (auto& comp : comps)
+        {
+            comp.update_resize(win);
         }
     }
 } // namespace ui

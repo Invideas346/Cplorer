@@ -297,7 +297,8 @@ void application::init()
 
     /* create all components */
     ui::component parent_tree(
-        [&]() -> void
+        0, 0, 10, 90,
+        [&](const ui::component& self) -> void
         {
             uint32_t win_width = 0, win_height = 0;
 
@@ -370,7 +371,8 @@ void application::init()
             /* end for - iterate over content_parent_dir */
         });
     ui::component current_tree(
-        [&]() -> void
+        10, 0, 40, 90,
+        [&](const ui::component& self) -> void
         {
             uint32_t win_width = 0, win_height = 0;
 
@@ -486,7 +488,8 @@ void application::init()
             /* end for - iterate over content_current_dir */
         });
     ui::component preview_tab(
-        [&]() -> void
+        50, 0, 50, 90,
+        [&](const ui::component& self) -> void
         {
             uint32_t win_width = 0, win_height = 0;
             uint32_t line_cnt = 0;
@@ -590,7 +593,8 @@ void application::init()
             /* end if - is a directory currently selected */
         });
     ui::component bottom_bar(
-        [&]() -> void
+        0, 0, 100, 10,
+        [&](const ui::component& self) -> void
         {
             std::string descriptor = "";
             uint32_t win_width = 0, win_height = 0;
@@ -867,6 +871,12 @@ int32_t application::loop()
             should_close = true;
         }
         /* end if - was ESC pressed */
+
+        /* if (window.is_resize())
+            {
+                ui_tree.update_resize();
+            }
+        */
 
         /* render the ui components */
         ui_tree.render();
