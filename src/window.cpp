@@ -21,6 +21,7 @@ namespace ui
         noecho();
     }
     void window::deinit() {}
+    void window::clear_scr() { clear(); }
     bool window::was_resized()
     {
         uint32_t current_width = 0, current_height = 0;

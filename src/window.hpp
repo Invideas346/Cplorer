@@ -29,6 +29,8 @@ namespace ui
         void deinit();
         bool was_resized();
 
+        void clear_scr();
+
         window_size get_window_size() const;
 
       private:
