@@ -5,14 +5,14 @@
 #include <functional>
 
 /*<-------------- Application-Includes ---------------->*/
+#include "window.hpp"
+
 /*<----------------- Library-Includes ----------------->*/
 #if WIN32
 #include <ncurses/ncurses.h>
 #elif unix
 #include <curses.h>
 #endif
-
-typedef std::function<void()> render_func;
 
 namespace ui
 {
@@ -38,17 +38,38 @@ namespace ui
         int32_t x, y;
     };
 
+    /* forward declaration */
+    struct component;
+    typedef std::function<void(const ui::component&)> render_func;
+
     struct component
     {
       public:
+        struct pos
+        {
+            uint32_t x, y;
+        };
+
         component() = default;
-        component(const render_func& fun);
+        component(uint8_t origin_x, uint8_t origin_y, uint8_t width, uint8_t height,
+                  const render_func& func);
 
         void assign_render_routine(render_func fun);
         void render() const;
+        void update_resize(const window& win);
+
+        pos get_render_origin_coords() const;
+        pos get_render_limit_coords() const;
+
+        /* height, width, origin_x and origin_y are in percent */
+        uint8_t width, height;
+        uint8_t origin_x, origin_y;
 
       private:
         render_func render_callback;
+
+        pos origin_render_coords;
+        pos limit_render_coords;
     };
 
     struct component_tree
@@ -63,6 +84,7 @@ namespace ui
         void pop_front();
 
         void render() const;
+        void update_resize(const window& win);
 
       private:
         std::vector<struct component> comps;

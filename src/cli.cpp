@@ -32,11 +32,32 @@ namespace ui
     void cursor::add_x(int32_t x) { this->x += x; }
     void cursor::add_y(int32_t y) { this->y += y; }
 
-    component::component(const render_func& func) : render_callback(func) {}
+    component::component(uint8_t origin_x, uint8_t origin_y, uint8_t width, uint8_t height,
+                         const render_func& func)
+        : render_callback(func), origin_x(origin_x), origin_y(origin_y), width(width),
+          height(height)
+    {
+    }
 
     void component::assign_render_routine(render_func fun) { this->render_callback = fun; }
 
-    void component::render() const { this->render_callback(); }
+    void component::render() const { this->render_callback(*this); }
+
+    void component::update_resize(const window& win)
+    {
+        auto win_size = win.get_window_size();
+
+        /* calcuate the start position */
+        origin_render_coords.x = ((float) origin_x / 100) * win_size.width;
+        origin_render_coords.y = ((float) origin_y / 100) * win_size.height;
+
+        /* calculate the limit */
+        limit_render_coords.x = (((float) width / 100) * win_size.width) + origin_render_coords.x;
+        limit_render_coords.y = (((float) height / 100) * win_size.height) + origin_render_coords.y;
+    }
+
+    component::pos component::get_render_origin_coords() const { return origin_render_coords; }
+    component::pos component::get_render_limit_coords() const { return limit_render_coords; }
 
     component_tree::component_tree(const std::vector<struct component>& components) {}
 
@@ -53,6 +74,14 @@ namespace ui
         for (auto& comp : comps)
         {
             comp.render();
+        }
+    }
+
+    void component_tree::update_resize(const window& win)
+    {
+        for (auto& comp : comps)
+        {
+            comp.update_resize(win);
         }
     }
 } // namespace ui
