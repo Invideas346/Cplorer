@@ -11,6 +11,9 @@ set(SOURCE_FILE
         config.cpp
         application.hpp 
         application.cpp
+        window.cpp
+
+        window.hpp
         main.cpp)
         
 # Find boost

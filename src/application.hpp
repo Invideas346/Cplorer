@@ -8,6 +8,7 @@
 #include "fs_handler.hpp"
 #include "cli.hpp"
 #include "input.hpp"
+#include "window.hpp"
 
 /*<----------------- Library-Includes ----------------->*/
 #if WIN32
@@ -28,7 +29,7 @@ struct application
 
   private:
     input input;
-    WINDOW* win = nullptr;
+    ui::window m_window;
     fs::error error;
     std::vector<boost::filesystem::path> content_current_dir, content_parent_dir, content_child_dir;
     boost::filesystem::path selected_entry, parent_dir;

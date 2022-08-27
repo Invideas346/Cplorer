@@ -255,16 +255,7 @@ void application::init()
     plog::init(plog::debug, "Log.txt");
 
     /* init ncurses */
-    this->win = initscr();
-
-    /* enable no-blocking getch */
-    nodelay(win, TRUE);
-
-    /* disable the cursor */
-    curs_set(0);
-
-    /* disable echoing input to stdout */
-    noecho();
+    m_window.init();
 
     /* initialize the color pairs */
     init_colors_schemes();
@@ -297,14 +288,9 @@ void application::init()
 
     /* create all components */
     ui::component parent_tree(
-        0, 0, 10, 90,
+        0, 0, 10, 100,
         [&](const ui::component& self) -> void
         {
-            uint32_t win_width = 0, win_height = 0;
-
-            /* get window heigth and width */
-            getmaxyx(win, win_height, win_width);
-
             /* if - no parent - abort */
             if (!current_dir.has_parent_path())
             {
@@ -313,8 +299,8 @@ void application::init()
             /* end if - no parent - abort */
 
             /* move the cursor to the origin */
-            const uint64_t origin_x = 0, origin_y = 0;
-            cursor.move_abs(origin_x, origin_y);
+            auto origin = self.get_render_origin_coords();
+            cursor.move_abs(origin.x, origin.y);
 
             /* if - parent on top of parent tree */
             if (current_dir.parent_path() != content_parent_dir[0])
@@ -334,7 +320,7 @@ void application::init()
                  it < content_parent_dir.end(); it++)
             {
                 /* if - line limit reached */
-                if (line_cnt > win_height - 2)
+                if (line_cnt > self.get_render_limit_coords().y - 2)
                 {
                     /* break in order to not overwrite the bottom bar */
                     break;
@@ -366,22 +352,16 @@ void application::init()
                 line_cnt++;
 
                 /* re-adjust the cursor */
-                cursor.move_abs(origin_x, it - content_parent_dir.begin() + 1);
+                cursor.move_abs(origin.x, it - content_parent_dir.begin() + 1);
             }
             /* end for - iterate over content_parent_dir */
         });
     ui::component current_tree(
-        10, 0, 40, 90,
+        10, 0, 40, 100,
         [&](const ui::component& self) -> void
         {
-            uint32_t win_width = 0, win_height = 0;
-
-            /* get window heigth and width */
-            getmaxyx(win, win_height, win_width);
-
-            /* move the cursor to the origin */
-            const uint64_t origin_x = 30, origin_y = 0;
-            cursor.move_abs(origin_x, origin_y);
+            auto origin = self.get_render_origin_coords();
+            cursor.move_abs(origin.x, origin.y);
 
             uint32_t line_cnt = 0;
 
@@ -390,7 +370,7 @@ void application::init()
                  it < content_current_dir.end(); it++)
             {
                 /* if - line limit reached */
-                if (line_cnt > win_height - 2)
+                if (line_cnt > self.get_render_limit_coords().y - 2)
                 {
                     /* break in order to not overwrite the bottom bar */
                     break;
@@ -483,23 +463,19 @@ void application::init()
                 line_cnt++;
 
                 /* re-adjust the cursor */
-                cursor.move_abs(origin_x, 1 + it - content_current_dir.begin());
+                cursor.move_abs(origin.x, 1 + it - content_current_dir.begin());
             }
             /* end for - iterate over content_current_dir */
         });
     ui::component preview_tab(
-        50, 0, 50, 90,
+        50, 0, 50, 100,
         [&](const ui::component& self) -> void
         {
-            uint32_t win_width = 0, win_height = 0;
             uint32_t line_cnt = 0;
 
-            /* get window heigth and width */
-            getmaxyx(win, win_height, win_width);
-
             /* move the cursor to the origin */
-            const uint64_t origin_x = 60, origin_y = 0;
-            cursor.move_abs(origin_x, origin_y);
+            auto origin = self.get_render_origin_coords();
+            cursor.move_abs(origin.x, origin.y);
 
             /* if - is a directory currently selected */
             if (directory_selected)
@@ -509,7 +485,7 @@ void application::init()
                      it < content_child_dir.end(); it++)
                 {
                     /* if - line limit reached */
-                    if (line_cnt > win_height - 2)
+                    if (line_cnt > self.get_render_limit_coords().y - 2)
                     {
                         /* break in order to not overwrite the bottom bar */
                         break;
@@ -542,15 +518,13 @@ void application::init()
                     line_cnt++;
 
                     /* re-adjust the cursor */
-                    cursor.move_abs(origin_x, it - content_child_dir.begin() + 1);
+                    cursor.move_abs(origin.x, it - content_child_dir.begin() + 1);
                 }
                 /* end for - iterate over every entry in the selected directory */
             }
             else
             {
-                uint64_t win_height = 0, win_width = 0, line_cnt = 0, char_line_cnt = 0;
-                /* get the terminal size */
-                getmaxyx(win, win_height, win_width);
+                uint64_t line_cnt = 0, char_line_cnt = 0;
 
                 /* set the color mpde to default */
                 attron(COLOR_PAIR(COLOR_SCHEME::DEFAULT_TEXT));
@@ -559,7 +533,7 @@ void application::init()
                 for (auto&& ch : file_preview)
                 {
                     /* if - screen already full */
-                    if (line_cnt > win_height - 2)
+                    if (line_cnt > self.get_render_limit_coords().y - 2)
                     {
                         break;
                     }
@@ -575,7 +549,8 @@ void application::init()
                     /* end if - char is line break */
 
                     /* if - gonna overflow terminal */
-                    if (char_line_cnt > win_width - origin_x - 1)
+                    if (char_line_cnt >
+                        self.get_render_limit_coords().x - self.get_render_origin_coords().x - 1)
                     {
                         line_cnt++;
                         char_line_cnt = 4;
@@ -593,18 +568,14 @@ void application::init()
             /* end if - is a directory currently selected */
         });
     ui::component bottom_bar(
-        0, 0, 100, 10,
+        0, 100, 100, 0,
         [&](const ui::component& self) -> void
         {
             std::string descriptor = "";
-            uint32_t win_width = 0, win_height = 0;
-
-            /* get the terminal size */
-            getmaxyx(win, win_height, win_width);
 
             /* move the cursor to the origin */
-            const uint64_t origin_x = 0, origin_y = win_height - 1;
-            cursor.move_abs(origin_x, origin_y);
+            auto origin = self.get_render_origin_coords();
+            cursor.move_abs(origin.x, origin.y - 1);
 
             /*
                 is_symblink has to called before because
@@ -872,11 +843,12 @@ int32_t application::loop()
         }
         /* end if - was ESC pressed */
 
-        /* if (window.is_resize())
-            {
-                ui_tree.update_resize();
-            }
-        */
+        /* if - was the window resized */
+        if (m_window.was_resized())
+        {
+            ui_tree.update_resize(m_window);
+        }
+        /* end if - was the window resized */
 
         /* render the ui components */
         ui_tree.render();

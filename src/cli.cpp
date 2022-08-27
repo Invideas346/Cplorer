@@ -43,16 +43,21 @@ namespace ui
 
     void component::render() const { this->render_callback(*this); }
 
-    void component::update_resize(const WINDOW* win)
+    void component::update_resize(const window& win)
     {
-        uint32_t win_height, win_width;
+        auto win_size = win.get_window_size();
 
-        /* get the terminal size */
-        getmaxyx(win, win_height, win_width);
+        /* calcuate the start position */
+        origin_render_coords.x = ((float) origin_x / 100) * win_size.width;
+        origin_render_coords.y = ((float) origin_y / 100) * win_size.height;
 
-        /* calucate new origin */
-        origin_x = 0, origin_y = win_height - 1;
+        /* calculate the limit */
+        limit_render_coords.x = (((float) width / 100) * win_size.width) + origin_render_coords.x;
+        limit_render_coords.y = (((float) height / 100) * win_size.height) + origin_render_coords.y;
     }
+
+    component::pos component::get_render_origin_coords() const { return origin_render_coords; }
+    component::pos component::get_render_limit_coords() const { return limit_render_coords; }
 
     component_tree::component_tree(const std::vector<struct component>& components) {}
 
@@ -72,7 +77,7 @@ namespace ui
         }
     }
 
-    void component_tree::update_resize(const WINDOW* win)
+    void component_tree::update_resize(const window& win)
     {
         for (auto& comp : comps)
         {
