@@ -705,6 +705,8 @@ void application::init()
 
 int32_t application::loop()
 {
+    bool should_close = false;
+
     /* while - application loop */
     while (!should_close)
     {

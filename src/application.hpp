@@ -35,7 +35,6 @@ struct application
     boost::filesystem::path current_dir;
     std::string file_preview;
     uint64_t selected_entry_index = 0;
-    bool should_close = false;
     bool directory_selected = true;
     ui::cursor cursor = {0, 0};
     ui::component_tree ui_tree;
