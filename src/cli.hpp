@@ -62,8 +62,8 @@ namespace ui
         pos get_render_limit_coords() const;
 
         /* height, width, origin_x and origin_y are in percent */
-        uint8_t width, height;
         uint8_t origin_x, origin_y;
+        uint8_t width, height;
 
       private:
         render_func render_callback;

@@ -34,8 +34,8 @@ namespace ui
 
     component::component(uint8_t origin_x, uint8_t origin_y, uint8_t width, uint8_t height,
                          const render_func& func)
-        : render_callback(func), origin_x(origin_x), origin_y(origin_y), width(width),
-          height(height)
+        : origin_x(origin_x), origin_y(origin_y), width(width), height(height),
+          render_callback(func)
     {
     }
 

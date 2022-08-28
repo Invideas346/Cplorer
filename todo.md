@@ -5,10 +5,9 @@
 
 <h2>New features</h2>
 
-- Implement relative sizes for each component (parent_tree -> 10% width, current_tree & file_preview -> 45%)
-- Implement File type of non directoreis if it's not a regulare text file
+- Implement File type of non-directories if it's not a regulare text file
 - Support mouse navigation
 
 <h2>Bugs</h2>
 
-- Inspect flickering when rendering
+- Inspect flickering when rendering (only appeares to be an issue on low spec. machines)
