@@ -235,7 +235,7 @@ std::tuple<std::string, FILESIZE_UNIT> filesize_to_string(uint64_t file_size)
     return {std::string(buffer), display_unit};
 }
 
-void init_colors_schemes()
+static inline void init_colors_schemes()
 {
     start_color();
     init_pair((uint16_t) COLOR_SCHEME::TEXT_FILE, COLOR_WHITE, COLOR_BLACK);
@@ -674,17 +674,39 @@ void application::init()
             printw("%s", descriptor.c_str());
             cursor.add_x(descriptor.size());
         });
+    ui::component menu(0, 0, 100, 100,
+                       [&](const ui::component& self) -> void
+                       {
+                           auto origin = self.get_render_origin_coords();
+                           cursor.move_abs(origin.x, origin.y);
+                           printw("Menu");
+                       });
+
+    /* cache the id of each component */
+    menu_id = menu.get_id();
+    parent_tree_id = parent_tree.get_id();
+    current_tree_id = current_tree.get_id();
+    preview_id = preview_tab.get_id();
+    bottom_bar_id = bottom_bar.get_id();
 
     /* create the component tree and add all components */
-    ui_tree.add_comp(parent_tree);
-    ui_tree.add_comp(current_tree);
-    ui_tree.add_comp(preview_tab);
-    ui_tree.add_comp(bottom_bar);
+    ui_tree.add_comp(parent_tree)
+        .add_comp(current_tree)
+        .add_comp(preview_tab)
+        .add_comp(bottom_bar)
+        .add_comp(menu);
+
+    /* deactivate everything excapt the menu at startup */
+    ui_tree.disable_by_id(parent_tree_id)
+        .disable_by_id(current_tree_id)
+        .disable_by_id(preview_id)
+        .disable_by_id(bottom_bar_id);
 }
 
 int32_t application::loop()
 {
     bool should_close = false;
+    bool shoud_menu_render = true;
 
     /* while - application loop */
     while (!should_close)
@@ -850,7 +872,10 @@ int32_t application::loop()
         /* if - was the window resized */
         if (m_window.was_resized())
         {
+            /* calucate the render boundries again */
             ui_tree.update_resize(m_window);
+
+            /* clear the screen */
             m_window.clear_scr();
         }
         /* end if - was the window resized */

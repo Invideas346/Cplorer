@@ -12,8 +12,8 @@ set(SOURCE_FILE
         application.hpp 
         application.cpp
         window.cpp
-
         window.hpp
+        ID_Creator.hpp
         main.cpp)
         
 # Find boost
