@@ -260,7 +260,8 @@ void application::init()
     /* initialize the color pairs */
     init_colors_schemes();
 
-    input = init_input();
+    /* initialize the input system */
+    input.init();
 
     /* get the content of the current and parent directory */
     current_dir = boost::filesystem::current_path();
@@ -712,11 +713,11 @@ int32_t application::loop()
     while (!should_close)
     {
         /* get console input */
-        fetch_input(input);
+        input.fetch();
 
         if (should_menu_render)
         {
-            if (key_pressed_input(input, LF))
+            if (input.key_pressed_input(LF))
             {
                 should_menu_render = false;
                 ui_tree.enable_by_id(parent_tree_id)
@@ -727,8 +728,8 @@ int32_t application::loop()
                 m_window.clear_scr();
             }
             /* if - was ESC or q pressed */
-            if (key_pressed_input(input, ESC) || key_pressed_input(input, Q_LOWER) ||
-                key_pressed_input(input, Q_UPPER))
+            if (input.key_pressed_input(ESC) || input.key_pressed_input(Q_LOWER) ||
+                input.key_pressed_input(Q_UPPER))
             {
                 should_close = true;
             }
@@ -737,8 +738,8 @@ int32_t application::loop()
         else
         {
             /* if - was enter or l pressed */
-            if (key_pressed_input(input, LF) || key_pressed_input(input, L_LOWER) ||
-                key_pressed_input(input, L_UPPER))
+            if (input.key_pressed_input(LF) || input.key_pressed_input(L_LOWER) ||
+                input.key_pressed_input(L_UPPER))
             {
                 /* if - is the current selected entry a directory */
                 if (directory_selected)
@@ -778,7 +779,7 @@ int32_t application::loop()
             /* end if - was enter or l pressed */
 
             /* if - was h pressed */
-            if (key_pressed_input(input, H_LOWER) || key_pressed_input(input, H_UPPER))
+            if (input.key_pressed_input(H_LOWER) || input.key_pressed_input(H_UPPER))
             {
                 /* if - has the current directory a parent directory */
                 if (current_dir.has_parent_path())
@@ -819,7 +820,7 @@ int32_t application::loop()
             /* end if - was h pressed */
 
             /* if - was j pressed */
-            if (key_pressed_input(input, J_LOWER) || key_pressed_input(input, J_UPPER))
+            if (input.key_pressed_input(J_LOWER) || input.key_pressed_input(J_UPPER))
             {
                 /* if - stay inbounds of the content_current_dir vector */
                 if (selected_entry_index < content_current_dir.size() - 1)
@@ -853,7 +854,7 @@ int32_t application::loop()
             /* end if - was j pressed */
 
             /* end if - was k pressed */
-            if (key_pressed_input(input, K_LOWER) || key_pressed_input(input, K_UPPER))
+            if (input.key_pressed_input(K_LOWER) || input.key_pressed_input(K_UPPER))
             {
                 /* if - stay inbounds of the content_current_dir vector */
                 if (selected_entry_index > 0)
@@ -887,7 +888,7 @@ int32_t application::loop()
             /* end if - was k pressed */
 
             /* if - was ESC pressed */
-            if (key_pressed_input(input, ESC))
+            if (input.key_pressed_input(ESC))
             {
                 should_menu_render = true;
                 ui_tree.disable_by_id(parent_tree_id)
@@ -900,13 +901,12 @@ int32_t application::loop()
             /* end if - was ESC pressed */
 
             /* if - was Q pressed */
-            if (key_pressed_input(input, Q_LOWER) || key_pressed_input(input, Q_UPPER))
+            if (input.key_pressed_input(Q_LOWER) || input.key_pressed_input(Q_UPPER))
             {
                 should_close = true;
             }
             /* end if - was Q pressed */
         }
-
         /* if - was the window resized */
         if (m_window.was_resized())
         {
