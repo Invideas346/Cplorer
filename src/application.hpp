@@ -39,5 +39,6 @@ struct Application
     bool directory_selected = true;
     UI::Cursor cursor = {0, 0};
     UI::ComponentTree ui_tree;
-    uint32_t menu_id, parent_tree_id, current_tree_id, preview_id, bottom_bar_id;
+    uint32_t menu_selection_id, menu_settings_tabs_id, parent_tree_id, current_tree_id, preview_id,
+        bottom_bar_id;
 };

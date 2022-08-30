@@ -158,7 +158,6 @@ std::tuple<std::string, FILESIZE_UNIT_TYPE> filesize_to_string(float floating_po
     }
     return {std::string(buffer), display_unit};
 }
-
 std::tuple<std::string, FILESIZE_UNIT_TYPE> filesize_to_string(uint64_t file_size)
 {
     float floating_point_val = file_size;
@@ -586,7 +585,7 @@ void Application::init()
 
         boost::filesystem::perms perms = boost::filesystem::status(selected_entry).permissions();
 
-        /* for - iterate over owner, group and other group */
+        /* for - iterate over owner, group and others */
         for (int32_t i = 100; i >= 1; i /= 10)
         {
             /*
@@ -602,7 +601,7 @@ void Application::init()
             (digit & 0x2) ? descriptor.append("w") : descriptor.append("-");
             (digit & 0x1) ? descriptor.append("x") : descriptor.append("-");
         }
-        /* end for - iterate over owner, group and other group */
+        /* end for - iterate over owner, group and others */
 
         /* get number of symbolic links or directories inside of directory */
         uint64_t child_sym_dir_cnt = 0;
@@ -657,14 +656,25 @@ void Application::init()
         printw("%s", descriptor.c_str());
         cursor.add_x(descriptor.size());
     });
-    UI::Component menu(0, 0, 100, 100, [&](const UI::Component& self) -> void {
+    UI::Component menu_selection(0, 0, 20, 100, [&](const UI::Component& self) -> void {
         auto origin = self.get_render_origin_coords();
+        auto limit = self.get_render_limit_coords();
         cursor.move_abs(origin.x, origin.y);
-        printw("Menu");
+        addnstr("Help", limit.x - origin.x);
+        cursor.move_abs(origin.x, origin.y + 1);
+        addnstr("Syntax highlighting", limit.x - origin.x);
+        cursor.move_abs(origin.x, origin.y + 1);
+    });
+    UI::Component menu_settings_tabs(20, 0, 80, 100, [&](const UI::Component& self) -> void {
+        auto origin = self.get_render_origin_coords();
+        auto limit = self.get_render_limit_coords();
+        cursor.move_abs(origin.x, origin.y);
+        printw("Menu settings");
     });
 
     /* cache the id of each component */
-    menu_id = menu.get_id();
+    menu_selection_id = menu_selection.get_id();
+    menu_settings_tabs_id = menu_settings_tabs.get_id();
     parent_tree_id = parent_tree.get_id();
     current_tree_id = current_tree.get_id();
     preview_id = preview_tab.get_id();
@@ -675,19 +685,17 @@ void Application::init()
         .add_comp(current_tree)
         .add_comp(preview_tab)
         .add_comp(bottom_bar)
-        .add_comp(menu);
+        .add_comp(menu_selection)
+        .add_comp(menu_settings_tabs);
 
-    /* deactivate everything excapt the menu at startup */
-    ui_tree.disable_by_id(parent_tree_id)
-        .disable_by_id(current_tree_id)
-        .disable_by_id(preview_id)
-        .disable_by_id(bottom_bar_id);
+    /* deactivate the menu */
+    ui_tree.disable_by_id(menu_selection_id).disable_by_id(menu_settings_tabs_id);
 }
 
 int32_t Application::loop()
 {
     bool should_close = false;
-    bool should_menu_render = true;
+    bool should_menu_render = false;
 
     /* while - application loop */
     while (!should_close)
@@ -704,7 +712,7 @@ int32_t Application::loop()
                     .enable_by_id(current_tree_id)
                     .enable_by_id(preview_id)
                     .enable_by_id(bottom_bar_id);
-                ui_tree.disable_by_id(menu_id);
+                ui_tree.disable_by_id(menu_selection_id).disable_by_id(menu_settings_tabs_id);
                 m_window.clear_scr();
             }
             /* if - was ESC or q pressed */
@@ -875,7 +883,8 @@ int32_t Application::loop()
                     .disable_by_id(current_tree_id)
                     .disable_by_id(preview_id)
                     .disable_by_id(bottom_bar_id);
-                ui_tree.enable_by_id(menu_id);
+                ui_tree.enable_by_id(menu_selection_id);
+                ui_tree.enable_by_id(menu_settings_tabs_id);
                 m_window.clear_scr();
             }
             /* end if - was ESC pressed */
