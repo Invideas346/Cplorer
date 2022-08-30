@@ -14,13 +14,13 @@
 #include <curses.h>
 #endif
 
-namespace ui
+namespace UI
 {
-    struct cursor
+    struct Cursor
     {
       public:
-        cursor() = default;
-        cursor(int32_t x, int32_t y);
+        Cursor() = default;
+        Cursor(int32_t x, int32_t y);
 
         void set_x(int32_t x);
         void set_y(int32_t y);
@@ -39,10 +39,10 @@ namespace ui
     };
 
     /* forward declaration */
-    struct component;
-    typedef std::function<void(const ui::component&)> render_func;
+    struct Component;
+    typedef std::function<void(const UI::Component&)> render_func;
 
-    struct component
+    struct Component
     {
       public:
         struct pos
@@ -50,13 +50,13 @@ namespace ui
             uint32_t x, y;
         };
 
-        component() = default;
-        component(uint8_t origin_x, uint8_t origin_y, uint8_t width, uint8_t height,
+        Component() = default;
+        Component(uint8_t origin_x, uint8_t origin_y, uint8_t width, uint8_t height,
                   const render_func& func);
 
         void assign_render_routine(render_func fun);
         void render() const;
-        void update_resize(const window& win);
+        void update_resize(const Window& win);
 
         pos get_render_origin_coords() const;
         pos get_render_limit_coords() const;
@@ -80,29 +80,29 @@ namespace ui
         pos limit_render_coords;
     };
 
-    struct component_tree
+    struct ComponentTree
     {
       public:
-        component_tree() = default;
-        component_tree(const std::vector<struct component>& components);
+        ComponentTree() = default;
+        ComponentTree(const std::vector<struct Component>& components);
 
-        component_tree& add_comp(struct component& comp);
-        component_tree& remove_comp_index(uint32_t index);
-        component_tree& remove_comp_id(uint32_t id);
+        ComponentTree& add_comp(struct Component& comp);
+        ComponentTree& remove_comp_index(uint32_t index);
+        ComponentTree& remove_comp_id(uint32_t id);
 
-        component_tree& disable_by_index(uint32_t index);
-        component_tree& disable_by_id(uint32_t id);
+        ComponentTree& disable_by_index(uint32_t index);
+        ComponentTree& disable_by_id(uint32_t id);
 
-        component_tree& enable_by_index(uint32_t index);
-        component_tree& enable_by_id(uint32_t id);
+        ComponentTree& enable_by_index(uint32_t index);
+        ComponentTree& enable_by_id(uint32_t id);
 
         void pop_back();
         void pop_front();
 
         void render() const;
-        void update_resize(const window& win);
+        void update_resize(const Window& win);
 
       private:
-        std::vector<struct component> comps;
+        std::vector<struct Component> comps;
     };
-} // namespace ui
+} // namespace UI

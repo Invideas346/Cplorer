@@ -14,22 +14,22 @@
 #include <curses.h>
 #endif
 
-void input::clear()
+void Input::clear()
 {
     for (uint32_t i = 0; i < 4; ++i)
         this->keys[i] = 0;
 }
 
-void input::init() { this->clear(); }
+void Input::init() { this->clear(); }
 
-void input::fetch()
+void Input::fetch()
 {
     this->clear();
     unsigned char first_char = getch();
     this->keys[first_char / 64] |= ((uint64_t) 1 << (first_char % 64));
 }
 
-bool input::key_pressed_input(ascii_table character)
+bool Input::key_pressed_input(ascii_table character)
 {
     return ((this->keys[character / 64] & ((uint64_t) 1 << (character % 64))) > 0);
 }

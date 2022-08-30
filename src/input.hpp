@@ -13,7 +13,7 @@
 
 /*<----------------- Library-Includes ----------------->*/
 
-typedef struct input
+typedef struct Input
 {
     void init();
     void fetch();
@@ -24,4 +24,4 @@ typedef struct input
 
   private:
     void clear();
-} input;
+} Input;

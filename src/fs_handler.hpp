@@ -12,9 +12,9 @@
 /*<----------------- Library-Includes ----------------->*/
 #include <boost/filesystem.hpp>
 
-namespace fs
+namespace FS
 {
-    struct error
+    struct Error
     {
         enum CODE
         {
@@ -34,26 +34,29 @@ namespace fs
     std::vector<boost::filesystem::path> sort_paths(std::vector<boost::filesystem::path> paths);
 
     std::vector<boost::filesystem::path> get_dir_content(const char* path,
-                                                         std::optional<error> error);
+                                                         std::optional<Error> error);
     std::vector<boost::filesystem::path> get_dir_content(const std::string& path,
-                                                         std::optional<error> error);
+                                                         std::optional<Error> error);
     std::vector<boost::filesystem::path> get_dir_content(const boost::filesystem::path& path,
-                                                         std::optional<error> error);
+                                                         std::optional<Error> error);
 
-    std::string get_file_content(const char* path, std::optional<error> error);
-    std::string get_file_content(const std::string& path, std::optional<error> error);
-    std::string get_file_content(const boost::filesystem::path& path, std::optional<error> error);
+    std::string get_file_content(const char* path, std::optional<Error> error);
+    std::string get_file_content(const std::string& path, std::optional<Error> error);
+    std::string get_file_content(const boost::filesystem::path& path, std::optional<Error> error);
 
-    std::string get_file_content_n(const char* path, uint64_t n, std::optional<error> error);
-    std::string get_file_content_n(const std::string& path, uint64_t n, std::optional<error> error);
+    std::string get_file_content_n(const char* path, uint64_t n, std::optional<Error> error);
+    std::string get_file_content_n(const std::string& path, uint64_t n, std::optional<Error> error);
     std::string get_file_content_n(const boost::filesystem::path& path, uint64_t n,
-                                   std::optional<error> error);
+                                   std::optional<Error> error);
 
-    uint64_t get_children_count(const char* path, std::optional<error> error);
-    uint64_t get_children_count(const std::string& path, std::optional<error> error);
-    uint64_t get_children_count(const boost::filesystem::path& path, std::optional<error> error);
+    uint64_t get_children_count(const char* path, std::optional<Error> error);
+    uint64_t get_children_count(const std::string& path, std::optional<Error> error);
+    uint64_t get_children_count(const boost::filesystem::path& path, std::optional<Error> error);
 
-    std::tuple<std::string, std::string> get_dir_entry_group_owner(const char* path, std::optional<error> error); 
-    std::tuple<std::string, std::string> get_dir_entry_group_owner(const std::string& path, std::optional<error> error); 
-    std::tuple<std::string, std::string> get_dir_entry_group_owner(const boost::filesystem::path& path, std::optional<error> error); 
-} // namespace fs
+    std::tuple<std::string, std::string> get_dir_entry_group_owner(const char* path,
+                                                                   std::optional<Error> error);
+    std::tuple<std::string, std::string> get_dir_entry_group_owner(const std::string& path,
+                                                                   std::optional<Error> error);
+    std::tuple<std::string, std::string>
+    get_dir_entry_group_owner(const boost::filesystem::path& path, std::optional<Error> error);
+} // namespace FS

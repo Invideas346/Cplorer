@@ -13,7 +13,7 @@
 
 int main(int argc, char** argv)
 {
-    application app;
+    Application app;
     app.init();
     int32_t code = app.loop();
     app.deinit();

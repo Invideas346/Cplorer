@@ -5,9 +5,9 @@
 
 /*<----------------- Library-Includes ----------------->*/
 
-namespace ui
+namespace UI
 {
-    void window::init()
+    void Window::init()
     {
         m_win = initscr();
 
@@ -20,9 +20,9 @@ namespace ui
         /* disable echoing input to stdout */
         noecho();
     }
-    void window::deinit() {}
-    void window::clear_scr() { clear(); }
-    bool window::was_resized()
+    void Window::deinit() {}
+    void Window::clear_scr() { clear(); }
+    bool Window::was_resized()
     {
         uint32_t current_width = 0, current_height = 0;
         getmaxyx(m_win, current_height, current_width);
@@ -34,5 +34,5 @@ namespace ui
         }
         return false;
     }
-    window_size window::get_window_size() const { return {m_width, m_height}; }
-} // namespace ui
+    WindowSize Window::get_window_size() const { return {m_width, m_height}; }
+} // namespace UI

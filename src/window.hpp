@@ -12,18 +12,18 @@
 #include <curses.h>
 #endif
 
-namespace ui
+namespace UI
 {
 
-    struct window_size
+    struct WindowSize
     {
         uint32_t width, height;
     };
 
-    struct window
+    struct Window
     {
       public:
-        window() = default;
+        Window() = default;
 
         void init();
         void deinit();
@@ -31,10 +31,10 @@ namespace ui
 
         void clear_scr();
 
-        window_size get_window_size() const;
+        WindowSize get_window_size() const;
 
       private:
         WINDOW* m_win = nullptr;
         uint32_t m_height, m_width;
     };
-} // namespace ui
+} // namespace UI
