@@ -15,11 +15,13 @@
 
 typedef struct input
 {
+    void init();
+    void fetch();
+    bool key_pressed_input(ascii_table character);
+
     /* 4 * 64 = 256 (all ascii chars) */
     uint64_t keys[4];
+
+  private:
+    void clear();
 } input;
-
-input init_input();
-
-void fetch_input(input& input);
-uint8_t key_pressed_input(input& input, ascii_table character);

@@ -1,0 +1,81 @@
+[
+    {
+        "name": "cpp",
+        "keywords":[
+            {
+                "auto": "orange",
+                "break": "orange",
+                "case": "orange",
+                "char": "orange",
+                "const": "orange",
+                "continue": "orange",
+                "default": "orange",
+                "do": "orange",
+                "double": "orange",
+                "else": "orange",
+                "enum": "orange",
+                "extern": "orange",
+                "float": "orange",
+                "for": "orange",
+                "goto": "orange",
+                "if": "orange",
+                "int": "orange",
+                "long": "orange",
+                "register": "orange",
+                "return": "orange",
+                "short": "orange",
+                "signed": "orange",
+                "sizeof": "orange",
+                "static": "orange",
+                "struct": "orange",
+                "switch": "orange",
+                "typedef": "orange",
+                "union": "orange",
+                "unsigned": "orange",
+                "void": "orange",
+                "volatile": "orange",
+                "while": "orange"
+            }
+        ]
+    },
+    {
+        "name": "c",
+        "keywords":[
+            {
+                "auto": "orange",
+                "break": "orange",
+                "case": "orange",
+                "char": "orange",
+                "const": "orange",
+                "continue": "orange",
+                "default": "orange",
+                "do": "orange",
+                "double": "orange",
+                "else": "orange",
+                "enum": "orange",
+                "extern": "orange",
+                "float": "orange",
+                "for": "orange",
+                "goto": "orange",
+                "if": "orange",
+                "int": "orange",
+                "long": "orange",
+                "register": "orange",
+                "return": "orange",
+                "short": "orange",
+                "signed": "orange",
+                "sizeof": "orange",
+                "static": "orange",
+                "struct": "orange",
+                "switch": "orange",
+                "typedef": "orange",
+                "union": "orange",
+                "unsigned": "orange",
+                "void": "orange",
+                "volatile": "orange",
+                "while": "orange"
+            },
+            ""
+        ]
+    }
+]

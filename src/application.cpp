@@ -235,7 +235,7 @@ std::tuple<std::string, FILESIZE_UNIT> filesize_to_string(uint64_t file_size)
     return {std::string(buffer), display_unit};
 }
 
-void init_colors_schemes()
+static inline void init_colors_schemes()
 {
     start_color();
     init_pair((uint16_t) COLOR_SCHEME::TEXT_FILE, COLOR_WHITE, COLOR_BLACK);
@@ -260,7 +260,8 @@ void application::init()
     /* initialize the color pairs */
     init_colors_schemes();
 
-    input = init_input();
+    /* initialize the input system */
+    input.init();
 
     /* get the content of the current and parent directory */
     current_dir = boost::filesystem::current_path();
@@ -674,183 +675,245 @@ void application::init()
             printw("%s", descriptor.c_str());
             cursor.add_x(descriptor.size());
         });
+    ui::component menu(0, 0, 100, 100,
+                       [&](const ui::component& self) -> void
+                       {
+                           auto origin = self.get_render_origin_coords();
+                           cursor.move_abs(origin.x, origin.y);
+                           printw("Menu");
+                       });
+
+    /* cache the id of each component */
+    menu_id = menu.get_id();
+    parent_tree_id = parent_tree.get_id();
+    current_tree_id = current_tree.get_id();
+    preview_id = preview_tab.get_id();
+    bottom_bar_id = bottom_bar.get_id();
 
     /* create the component tree and add all components */
-    ui_tree.add_comp(parent_tree);
-    ui_tree.add_comp(current_tree);
-    ui_tree.add_comp(preview_tab);
-    ui_tree.add_comp(bottom_bar);
+    ui_tree.add_comp(parent_tree)
+        .add_comp(current_tree)
+        .add_comp(preview_tab)
+        .add_comp(bottom_bar)
+        .add_comp(menu);
+
+    /* deactivate everything excapt the menu at startup */
+    ui_tree.disable_by_id(parent_tree_id)
+        .disable_by_id(current_tree_id)
+        .disable_by_id(preview_id)
+        .disable_by_id(bottom_bar_id);
 }
 
 int32_t application::loop()
 {
     bool should_close = false;
+    bool should_menu_render = true;
 
     /* while - application loop */
     while (!should_close)
     {
         /* get console input */
-        fetch_input(input);
+        input.fetch();
 
-        /* if - was enter or l pressed */
-        if (key_pressed_input(input, CR) || key_pressed_input(input, L_LOWER) ||
-            key_pressed_input(input, L_UPPER))
+        if (should_menu_render)
         {
-            /* if - is the current selected entry a directory */
-            if (directory_selected)
+            if (input.key_pressed_input(LF))
             {
-                /* current content => parent content */
-                content_parent_dir = content_current_dir;
-
-                /* child content => current content */
-                content_current_dir = content_child_dir;
-
-                /* prev selected entry to current dir */
-                current_dir = boost::filesystem::path(selected_entry);
-
-                /* always select the first entry */
-                selected_entry = content_current_dir[0];
-                selected_entry_index = 0;
-
-                /* if - entry directory */
-                if (boost::filesystem::is_directory(selected_entry))
+                should_menu_render = false;
+                ui_tree.enable_by_id(parent_tree_id)
+                    .enable_by_id(current_tree_id)
+                    .enable_by_id(preview_id)
+                    .enable_by_id(bottom_bar_id);
+                ui_tree.disable_by_id(menu_id);
+                m_window.clear_scr();
+            }
+            /* if - was ESC or q pressed */
+            if (input.key_pressed_input(ESC) || input.key_pressed_input(Q_LOWER) ||
+                input.key_pressed_input(Q_UPPER))
+            {
+                should_close = true;
+            }
+            /* end if - was ESC pressed */
+        }
+        else
+        {
+            /* if - was enter or l pressed */
+            if (input.key_pressed_input(LF) || input.key_pressed_input(L_LOWER) ||
+                input.key_pressed_input(L_UPPER))
+            {
+                /* if - is the current selected entry a directory */
+                if (directory_selected)
                 {
-                    content_child_dir = fs::get_dir_content(selected_entry, std::nullopt);
+                    /* current content => parent content */
+                    content_parent_dir = content_current_dir;
+
+                    /* child content => current content */
+                    content_current_dir = content_child_dir;
+
+                    /* prev selected entry to current dir */
+                    current_dir = boost::filesystem::path(selected_entry);
+
+                    /* always select the first entry */
+                    selected_entry = content_current_dir[0];
+                    selected_entry_index = 0;
+
+                    /* if - entry directory */
+                    if (boost::filesystem::is_directory(selected_entry))
+                    {
+                        content_child_dir = fs::get_dir_content(selected_entry, std::nullopt);
+                        directory_selected = true;
+                    }
+                    else
+                    {
+                        file_preview.clear();
+                        file_preview = fs::get_file_content_n(selected_entry, 5000, std::nullopt);
+                        directory_selected = false;
+                    }
+                    /* end if - entry directory */
+                }
+                /* end if - is the current selected entry a directory */
+
+                /* clear screen to re-render */
+                m_window.clear_scr();
+            }
+            /* end if - was enter or l pressed */
+
+            /* if - was h pressed */
+            if (input.key_pressed_input(H_LOWER) || input.key_pressed_input(H_UPPER))
+            {
+                /* if - has the current directory a parent directory */
+                if (current_dir.has_parent_path())
+                {
+                    /* current content  => child content */
+                    content_child_dir = content_current_dir;
+                    /* parent content  => current content */
+                    content_current_dir = content_parent_dir;
+
+                    /* can only be parented by directory */
                     directory_selected = true;
+
+                    /* prev. parent must be selected */
+                    selected_entry = selected_entry.parent_path();
+                    current_dir = current_dir.parent_path();
+
+                    /* get parent content*/
+                    content_parent_dir =
+                        fs::get_dir_content(current_dir.parent_path(), std::nullopt);
+
+                    /* for - iterate over new current content */
+                    for (std::vector<boost::filesystem::path>::iterator it =
+                             content_current_dir.begin();
+                         it < content_current_dir.end(); it++)
+                    {
+                        /* find new selected entry and get index */
+                        auto found_iter = std::find(content_current_dir.begin(),
+                                                    content_current_dir.end(), selected_entry);
+                        selected_entry_index = found_iter - content_current_dir.begin();
+                    }
+                    /* end for - iterate over new current content */
+
+                    /* clear screen to re-render */
+                    m_window.clear_scr();
                 }
-                else
-                {
-                    file_preview.clear();
-                    file_preview = fs::get_file_content_n(selected_entry, 5000, std::nullopt);
-                    directory_selected = false;
-                }
-                /* end if - entry directory */
+                /* end if - has the current directory a parent directory */
             }
-            /* end if - is the current selected entry a directory */
+            /* end if - was h pressed */
 
-            /* clear screen to re-render */
-            m_window.clear_scr();
-        }
-        /* end if - was enter or l pressed */
-
-        /* if - was h pressed */
-        if (key_pressed_input(input, H_LOWER) || key_pressed_input(input, H_UPPER))
-        {
-            /* if - has the current directory a parent directory */
-            if (current_dir.has_parent_path())
+            /* if - was j pressed */
+            if (input.key_pressed_input(J_LOWER) || input.key_pressed_input(J_UPPER))
             {
-                /* current content  => child content */
-                content_child_dir = content_current_dir;
-                /* parent content  => current content */
-                content_current_dir = content_parent_dir;
-
-                /* can only be parented by directory */
-                directory_selected = true;
-
-                /* prev. parent must be selected */
-                selected_entry = selected_entry.parent_path();
-                current_dir = current_dir.parent_path();
-
-                /* get parent content*/
-                content_parent_dir = fs::get_dir_content(current_dir.parent_path(), std::nullopt);
-
-                /* for - iterate over new current content */
-                for (std::vector<boost::filesystem::path>::iterator it =
-                         content_current_dir.begin();
-                     it < content_current_dir.end(); it++)
+                /* if - stay inbounds of the content_current_dir vector */
+                if (selected_entry_index < content_current_dir.size() - 1)
                 {
-                    /* find new selected entry and get index */
-                    auto found_iter = std::find(content_current_dir.begin(),
-                                                content_current_dir.end(), selected_entry);
-                    selected_entry_index = found_iter - content_current_dir.begin();
-                }
-                /* end for - iterate over new current content */
+                    /* move down in tree */
+                    selected_entry = content_current_dir[selected_entry_index + 1];
+                    selected_entry_index++;
 
-                /* clear screen to re-render */
+                    /* determine if directoryy selected */
+                    directory_selected =
+                        boost::filesystem::is_directory(selected_entry) ? true : false;
+
+                    /* if - directory selected */
+                    if (directory_selected)
+                    {
+                        content_child_dir = fs::get_dir_content(selected_entry, std::nullopt);
+                    }
+                    else
+                    {
+                        /* try to get preview of text-file */
+                        file_preview.clear();
+                        file_preview = fs::get_file_content_n(selected_entry, 5000, std::nullopt);
+                    }
+                    /* end if - directory selected */
+
+                    /* clear screen to re-render */
+                    m_window.clear_scr();
+                }
+                /* end if - stay inbounds of the content_current_dir vector */
+            }
+            /* end if - was j pressed */
+
+            /* end if - was k pressed */
+            if (input.key_pressed_input(K_LOWER) || input.key_pressed_input(K_UPPER))
+            {
+                /* if - stay inbounds of the content_current_dir vector */
+                if (selected_entry_index > 0)
+                {
+                    /* move up in tree */
+                    selected_entry = content_current_dir[selected_entry_index - 1];
+                    selected_entry_index--;
+
+                    /* determine if directoryy selected */
+                    directory_selected =
+                        boost::filesystem::is_directory(selected_entry) ? true : false;
+
+                    /* if - directory selected */
+                    if (directory_selected)
+                    {
+                        content_child_dir = fs::get_dir_content(selected_entry, std::nullopt);
+                    }
+                    else
+                    {
+                        /* try to get preview of text-file */
+                        file_preview.clear();
+                        file_preview = fs::get_file_content_n(selected_entry, 5000, std::nullopt);
+                    }
+                    /* end if - directory selected */
+
+                    /* clear screen to re-render */
+                    m_window.clear_scr();
+                }
+                /* end if - stay inbounds of the content_current_dir vector */
+            }
+            /* end if - was k pressed */
+
+            /* if - was ESC pressed */
+            if (input.key_pressed_input(ESC))
+            {
+                should_menu_render = true;
+                ui_tree.disable_by_id(parent_tree_id)
+                    .disable_by_id(current_tree_id)
+                    .disable_by_id(preview_id)
+                    .disable_by_id(bottom_bar_id);
+                ui_tree.enable_by_id(menu_id);
                 m_window.clear_scr();
             }
-            /* end if - has the current directory a parent directory */
-        }
-        /* end if - was h pressed */
+            /* end if - was ESC pressed */
 
-        /* if - was j pressed */
-        if (key_pressed_input(input, J_LOWER) || key_pressed_input(input, J_UPPER))
-        {
-            /* if - stay inbounds of the content_current_dir vector */
-            if (selected_entry_index < content_current_dir.size() - 1)
+            /* if - was Q pressed */
+            if (input.key_pressed_input(Q_LOWER) || input.key_pressed_input(Q_UPPER))
             {
-                /* move down in tree */
-                selected_entry = content_current_dir[selected_entry_index + 1];
-                selected_entry_index++;
-
-                /* determine if directoryy selected */
-                directory_selected = boost::filesystem::is_directory(selected_entry) ? true : false;
-
-                /* if - directory selected */
-                if (directory_selected)
-                {
-                    content_child_dir = fs::get_dir_content(selected_entry, std::nullopt);
-                }
-                else
-                {
-                    /* try to get preview of text-file */
-                    file_preview.clear();
-                    file_preview = fs::get_file_content_n(selected_entry, 5000, std::nullopt);
-                }
-                /* end if - directory selected */
-
-                /* clear screen to re-render */
-                m_window.clear_scr();
+                should_close = true;
             }
-            /* end if - stay inbounds of the content_current_dir vector */
+            /* end if - was Q pressed */
         }
-        /* end if - was j pressed */
-
-        /* end if - was k pressed */
-        if (key_pressed_input(input, K_LOWER) || key_pressed_input(input, K_UPPER))
-        {
-            /* if - stay inbounds of the content_current_dir vector */
-            if (selected_entry_index > 0)
-            {
-                /* move up in tree */
-                selected_entry = content_current_dir[selected_entry_index - 1];
-                selected_entry_index--;
-
-                /* determine if directoryy selected */
-                directory_selected = boost::filesystem::is_directory(selected_entry) ? true : false;
-
-                /* if - directory selected */
-                if (directory_selected)
-                {
-                    content_child_dir = fs::get_dir_content(selected_entry, std::nullopt);
-                }
-                else
-                {
-                    /* try to get preview of text-file */
-                    file_preview.clear();
-                    file_preview = fs::get_file_content_n(selected_entry, 5000, std::nullopt);
-                }
-                /* end if - directory selected */
-
-                /* clear screen to re-render */
-                m_window.clear_scr();
-            }
-            /* end if - stay inbounds of the content_current_dir vector */
-        }
-        /* end if - was k pressed */
-
-        /* if - was ESC pressed */
-        if (key_pressed_input(input, ESC) || key_pressed_input(input, Q_LOWER) ||
-            key_pressed_input(input, Q_UPPER))
-        {
-            should_close = true;
-        }
-        /* end if - was ESC pressed */
-
         /* if - was the window resized */
         if (m_window.was_resized())
         {
+            /* calucate the render boundries again */
             ui_tree.update_resize(m_window);
+
+            /* clear the screen */
             m_window.clear_scr();
         }
         /* end if - was the window resized */

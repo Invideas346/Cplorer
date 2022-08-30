@@ -61,11 +61,19 @@ namespace ui
         pos get_render_origin_coords() const;
         pos get_render_limit_coords() const;
 
+        uint32_t get_id() const;
+
+        bool is_active() const;
+        void activate();
+        void deactive();
+
         /* height, width, origin_x and origin_y are in percent */
-        uint8_t width, height;
         uint8_t origin_x, origin_y;
+        uint8_t width, height;
 
       private:
+        bool active = true;
+        uint32_t id;
         render_func render_callback;
 
         pos origin_render_coords;
@@ -78,8 +86,16 @@ namespace ui
         component_tree() = default;
         component_tree(const std::vector<struct component>& components);
 
-        void add_comp(struct component& comp);
-        void remove_comp(uint32_t index);
+        component_tree& add_comp(struct component& comp);
+        component_tree& remove_comp_index(uint32_t index);
+        component_tree& remove_comp_id(uint32_t id);
+
+        component_tree& disable_by_index(uint32_t index);
+        component_tree& disable_by_id(uint32_t id);
+
+        component_tree& enable_by_index(uint32_t index);
+        component_tree& enable_by_id(uint32_t id);
+
         void pop_back();
         void pop_front();
 
