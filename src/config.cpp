@@ -9,18 +9,34 @@
 
 nlohmann::json load_config(const char* path)
 {
-    nlohmann::json obj = nlohmann::json::parse(FS::get_file_content(path, std::nullopt));
-    return (obj.is_discarded()) ? nullptr : obj;
+    if (boost::filesystem::exists(boost::filesystem::path(path)))
+    {
+
+        nlohmann::json obj = nlohmann::json::parse(FS::get_file_content(path, std::nullopt));
+        return (obj.is_discarded()) ? nullptr : obj;
+    }
+    return nullptr;
 }
 
 nlohmann::json load_config(const std::string& path)
 {
-    nlohmann::json obj = nlohmann::json::parse(FS::get_file_content(path, std::nullopt));
-    return (obj.is_discarded()) ? nullptr : obj;
+    if (boost::filesystem::exists(boost::filesystem::path(path)))
+    {
+
+        nlohmann::json obj = nlohmann::json::parse(FS::get_file_content(path, std::nullopt));
+        return (obj.is_discarded()) ? nullptr : obj;
+    }
+    return nullptr;
 }
 
 nlohmann::json load_config(const boost::filesystem::path& path)
 {
+    if (boost::filesystem::exists(boost::filesystem::path(path)))
+    {
+
+        nlohmann::json obj = nlohmann::json::parse(FS::get_file_content(path, std::nullopt));
+        return (obj.is_discarded()) ? nullptr : obj;
+    }
+    return nullptr;
     nlohmann::json obj = nlohmann::json::parse(FS::get_file_content(path, std::nullopt));
-    return (obj.is_discarded()) ? nullptr : obj;
 }
