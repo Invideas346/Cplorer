@@ -269,7 +269,7 @@ void Application::init()
     selected_entry = boost::filesystem::path(content_current_dir[0]);
     content_child_dir = FS::get_dir_content(selected_entry, error);
 
-    nlohmann::json config = load_config("config/config.json");
+    //    nlohmann::json config = load_config("config/config.json");
 
     /* if - did error occure */
     if (error.ec == FS::Error::INVALID_ARGUMENT)
