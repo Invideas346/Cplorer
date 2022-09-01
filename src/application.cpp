@@ -287,415 +287,407 @@ void Application::init()
     /* end if - did error occure  */
 
     /* create all components */
-    UI::Component parent_tree(0, 0, 10, 100, [&](const UI::Component& self) -> void {
-        /* if - no parent - abort */
-        if (!current_dir.has_parent_path())
+    UI::Component parent_tree(
+        0, 0, 10, 100,
+        [&](const UI::Component& self) -> void
         {
-            return;
-        }
-        /* end if - no parent - abort */
-
-        /* move the cursor to the origin */
-        auto origin = self.get_render_origin_coords();
-        auto limit = self.get_render_limit_coords();
-        limit.x -= 1;
-        cursor.move_abs(origin.x, origin.y);
-
-        /* if - parent on top of parent tree */
-        if (current_dir.parent_path() != content_parent_dir[0])
-        {
-            /* place parent path on top of parent tree */
-            auto iter = std::find_if(
-                content_parent_dir.begin(), content_parent_dir.end(),
-                [&](const boost::filesystem::path& entry) -> bool { return entry == current_dir; });
-            std::swap(content_parent_dir[0], *iter);
-        }
-        /* end if - parent on top of parent tree */
-
-        uint32_t line_cnt = 0;
-
-        /* for - iterate over content_parent_dir */
-        for (std::vector<boost::filesystem::path>::iterator it = content_parent_dir.begin();
-             it < content_parent_dir.end(); it++)
-        {
-            /* if - line limit reached */
-            if (line_cnt > limit.y - 2)
+            /* if - no parent - abort */
+            if (!current_dir.has_parent_path())
             {
-                /* break in order to not overwrite the bottom bar */
-                break;
+                return;
             }
-            /* end if - line limit reached */
+            /* end if - no parent - abort */
 
-            COLOR_SCHEME scheme = determin_COLOR_SCHEME(*it, *it == current_dir);
-            attron(COLOR_PAIR(scheme));
-            addnstr(boost::filesystem::relative(*it, current_dir.parent_path()).native().c_str(),
-                    29);
-            uint32_t path_length =
-                boost::filesystem::relative(*it, current_dir.parent_path()).native().size();
-            cursor.add_x(path_length);
+            /* move the cursor to the origin */
+            auto origin = self.get_render_origin_coords();
+            auto limit = self.get_render_limit_coords();
+            limit.x -= 1;
+            cursor.move_abs(origin.x, origin.y);
 
-            /* if - does the row have to filled */
-            if (path_length < limit.x - origin.x)
+            /* if - parent on top of parent tree */
+            if (current_dir.parent_path() != content_parent_dir[0])
             {
-                /* for - file row */
-                for (size_t i = path_length; i < limit.x - origin.x; i++)
-                {
-                    addch(' ');
-                    cursor.add_x(1);
-                }
-                /* end for - file row */
+                /* place parent path on top of parent tree */
+                auto iter = std::find_if(content_parent_dir.begin(), content_parent_dir.end(),
+                                         [&](const boost::filesystem::path& entry) -> bool
+                                         { return entry == current_dir; });
+                std::swap(content_parent_dir[0], *iter);
             }
-            /* end if - does the row have to filled */
+            /* end if - parent on top of parent tree */
 
-            line_cnt++;
+            uint32_t line_cnt = 0;
 
-            /* re-adjust the cursor */
-            cursor.move_abs(origin.x, it - content_parent_dir.begin() + 1);
-        }
-        /* end for - iterate over content_parent_dir */
-    });
-    UI::Component current_tree(10, 0, 40, 100, [&](const UI::Component& self) -> void {
-        auto origin = self.get_render_origin_coords();
-        auto limit = self.get_render_limit_coords();
-        limit.x -= 1;
-        cursor.move_abs(origin.x, origin.y);
-
-        uint32_t line_cnt = 0;
-
-        /* for - iterate over content_current_dir */
-        for (std::vector<boost::filesystem::path>::iterator it = content_current_dir.begin();
-             it < content_current_dir.end(); it++)
-        {
-            /* if - line limit reached */
-            if (line_cnt > limit.y - (origin.y + 2))
-            {
-                /* break in order to not overwrite the bottom bar */
-                break;
-            }
-            /* end if - line limit reached */
-
-            COLOR_SCHEME scheme = determin_COLOR_SCHEME(*it, *it == selected_entry);
-            attron(COLOR_PAIR(scheme));
-            addnstr(boost::filesystem::relative(*it, current_dir).native().c_str(), limit.x);
-            uint32_t path_length = boost::filesystem::relative(*it, current_dir).native().size();
-            cursor.add_x(path_length);
-
-            /* if - is entry directroy */
-            if (boost::filesystem::is_directory(*it))
-            {
-                uint32_t digit_cnt = 0;
-                uint32_t children_cnt = FS::get_children_count(*it, std::nullopt);
-
-                /* for - count digets to be printed */
-                for (uint32_t i = 1;; i *= 10)
-                {
-                    /* if - still bigger */
-                    if (children_cnt / i >= 1)
-                    {
-                        digit_cnt++;
-                        continue;
-                    }
-                    /* end if - still bigger */
-
-                    break;
-                }
-                /* end for - count digets to be printed */
-
-                /* if - does the row have to filled */
-                if (path_length < limit.x - origin.x)
-                {
-                    /* for - print whitespaces */
-                    for (size_t i = path_length; i < limit.x - origin.x; i++)
-                    {
-                        /* if - print whitespace or child count */
-                        if ((limit.x - origin.x) - i > digit_cnt)
-                        {
-                            addch(' ');
-                            cursor.add_x(1);
-                        }
-                        else
-                        {
-                            printw("%d", children_cnt);
-                            cursor.add_x(digit_cnt);
-                            break;
-                        }
-                        /* end if - print whitespace or child count */
-                    }
-                    /* end for - print whitespaces */
-                }
-                /* end if - does the row have to filled */
-            }
-            else
-            {
-                uint64_t file_size = boost::filesystem::file_size(*it);
-                auto [file_size_str, unit] = filesize_to_string(file_size);
-
-                /* if - does the row have to filled */
-                if (path_length < limit.x - origin.x)
-                {
-                    /* for - print whitespaces */
-                    for (size_t i = path_length; i < limit.x - origin.x; i++)
-                    {
-                        /* if - print whitespace or child count */
-                        if ((limit.x - origin.x) - i > file_size_str.size())
-                        {
-                            addch(' ');
-                            cursor.add_x(1);
-                        }
-                        else
-                        {
-                            printw("%s", file_size_str.c_str());
-                            cursor.add_x(file_size_str.size());
-                            break;
-                        }
-                        /* end if - print whitespace or child count */
-                    }
-                    /* end for - print whitespaces */
-                }
-                /* end if - does the row have to filled */
-            }
-            /* end if - is entry directroy */
-
-            line_cnt++;
-
-            /* re-adjust the cursor */
-            cursor.move_abs(origin.x, 1 + it - content_current_dir.begin());
-        }
-        /* end for - iterate over content_current_dir */
-    });
-    UI::Component preview_tab(50, 0, 50, 100, [&](const UI::Component& self) -> void {
-        uint32_t line_cnt = 0;
-
-        /* move the cursor to the origin */
-        auto origin = self.get_render_origin_coords();
-        auto limit = self.get_render_limit_coords();
-        cursor.move_abs(origin.x, origin.y);
-
-        /* if - is a directory currently selected */
-        if (directory_selected)
-        {
-            /* for - iterate over every entry in the selected directory */
-            for (std::vector<boost::filesystem::path>::iterator it = content_child_dir.begin();
-                 it < content_child_dir.end(); it++)
+            /* for - iterate over content_parent_dir */
+            for (std::vector<boost::filesystem::path>::iterator it = content_parent_dir.begin();
+                 it < content_parent_dir.end(); it++)
             {
                 /* if - line limit reached */
-                if (line_cnt > (limit.y - origin.y) - 2)
+                if (line_cnt > limit.y - 2)
                 {
                     /* break in order to not overwrite the bottom bar */
                     break;
                 }
                 /* end if - line limit reached */
 
-                COLOR_SCHEME scheme = determin_COLOR_SCHEME(*it, *it == content_child_dir[0]);
+                COLOR_SCHEME scheme = determin_COLOR_SCHEME(*it, *it == current_dir);
                 attron(COLOR_PAIR(scheme));
-                addnstr(boost::filesystem::relative(*it, selected_entry).native().c_str(), limit.x);
+                addnstr(
+                    boost::filesystem::relative(*it, current_dir.parent_path()).native().c_str(),
+                    29);
                 uint32_t path_length =
-                    boost::filesystem::relative(*it, selected_entry.parent_path()).native().size();
+                    boost::filesystem::relative(*it, current_dir.parent_path()).native().size();
                 cursor.add_x(path_length);
 
                 /* if - does the row have to filled */
                 if (path_length < limit.x - origin.x)
                 {
-                    /* for - print whitespaces */
+                    /* for - file row */
                     for (size_t i = path_length; i < limit.x - origin.x; i++)
                     {
                         addch(' ');
                         cursor.add_x(1);
                     }
-                    /* end for - print whitespaces */
+                    /* end for - file row */
                 }
                 /* end if - does the row have to filled */
 
                 line_cnt++;
 
                 /* re-adjust the cursor */
-                cursor.move_abs(origin.x, it - content_child_dir.begin() + 1);
+                cursor.move_abs(origin.x, it - content_parent_dir.begin() + 1);
             }
-            /* end for - iterate over every entry in the selected directory */
-        }
-        else
+            /* end for - iterate over content_parent_dir */
+        });
+    UI::Component current_tree(
+        10, 0, 40, 100,
+        [&](const UI::Component& self) -> void
         {
-            uint64_t line_cnt = 0, char_line_cnt = 0;
+            auto origin = self.get_render_origin_coords();
+            auto limit = self.get_render_limit_coords();
+            limit.x -= 1;
+            cursor.move_abs(origin.x, origin.y);
 
-            /* set the color mpde to default */
-            attron(COLOR_PAIR(COLOR_SCHEME::DEFAULT_TEXT));
+            uint32_t line_cnt = 0;
 
-            /* for - iterate over every char in the preview */
-            for (auto&& ch : file_preview)
+            /* for - iterate over content_current_dir */
+            for (std::vector<boost::filesystem::path>::iterator it = content_current_dir.begin();
+                 it < content_current_dir.end(); it++)
             {
-                /* if - screen already full */
-                if (line_cnt > (limit.y - origin.y) - 2)
+                /* if - line limit reached */
+                if (line_cnt > limit.y - (origin.y + 2))
                 {
+                    /* break in order to not overwrite the bottom bar */
                     break;
                 }
-                /* end if - screen already full */
+                /* end if - line limit reached */
 
-                /* if - char is line break */
-                if (ch == '\n')
-                {
-                    line_cnt++;
-                    char_line_cnt = 0;
-                    continue;
-                }
-                /* end if - char is line break */
+                COLOR_SCHEME scheme = determin_COLOR_SCHEME(*it, *it == selected_entry);
+                attron(COLOR_PAIR(scheme));
+                addnstr(boost::filesystem::relative(*it, current_dir).native().c_str(), limit.x);
+                uint32_t path_length =
+                    boost::filesystem::relative(*it, current_dir).native().size();
+                cursor.add_x(path_length);
 
-                /* if - gonna overflow terminal */
-                if (char_line_cnt > (limit.x - origin.x) - 1)
+                /* if - is entry directroy */
+                if (boost::filesystem::is_directory(*it))
                 {
-                    line_cnt++;
-                    char_line_cnt = 4;
+                    uint32_t digit_cnt = 0;
+                    uint32_t children_cnt = FS::get_children_count(*it, std::nullopt);
+
+                    /* for - count digets to be printed */
+                    for (uint32_t i = 1;; i *= 10)
+                    {
+                        /* if - still bigger */
+                        if (children_cnt / i >= 1)
+                        {
+                            digit_cnt++;
+                            continue;
+                        }
+                        /* end if - still bigger */
+
+                        break;
+                    }
+                    /* end for - count digets to be printed */
+
+                    /* if - does the row have to filled */
+                    if (path_length < limit.x - origin.x)
+                    {
+                        /* for - print whitespaces */
+                        for (size_t i = path_length; i < limit.x - origin.x; i++)
+                        {
+                            /* if - print whitespace or child count */
+                            if ((limit.x - origin.x) - i > digit_cnt)
+                            {
+                                addch(' ');
+                                cursor.add_x(1);
+                            }
+                            else
+                            {
+                                printw("%d", children_cnt);
+                                cursor.add_x(digit_cnt);
+                                break;
+                            }
+                            /* end if - print whitespace or child count */
+                        }
+                        /* end for - print whitespaces */
+                    }
+                    /* end if - does the row have to filled */
                 }
-                /* end if - gonna overflow terminal */
+                else
+                {
+                    uint64_t file_size = boost::filesystem::file_size(*it);
+                    auto [file_size_str, unit] = filesize_to_string(file_size);
+
+                    /* if - does the row have to filled */
+                    if (path_length < limit.x - origin.x)
+                    {
+                        /* for - print whitespaces */
+                        for (size_t i = path_length; i < limit.x - origin.x; i++)
+                        {
+                            /* if - print whitespace or child count */
+                            if ((limit.x - origin.x) - i > file_size_str.size())
+                            {
+                                addch(' ');
+                                cursor.add_x(1);
+                            }
+                            else
+                            {
+                                printw("%s", file_size_str.c_str());
+                                cursor.add_x(file_size_str.size());
+                                break;
+                            }
+                            /* end if - print whitespace or child count */
+                        }
+                        /* end for - print whitespaces */
+                    }
+                    /* end if - does the row have to filled */
+                }
+                /* end if - is entry directroy */
+
+                line_cnt++;
 
                 /* re-adjust the cursor */
-                cursor.move_abs(origin.x + char_line_cnt, line_cnt);
-                addch(ch);
-                char_line_cnt++;
-                cursor.add_x(1);
+                cursor.move_abs(origin.x, 1 + it - content_current_dir.begin());
             }
-            /* end for - iterate over every char in the preview */
-        }
-        /* end if - is a directory currently selected */
-    });
-    UI::Component bottom_bar(0, 100, 100, 0, [&](const UI::Component& self) -> void {
-        std::string descriptor = "";
-
-        /* move the cursor to the origin */
-        auto origin = self.get_render_origin_coords();
-        cursor.move_abs(origin.x, origin.y - 1);
-
-        /*
-            is_symblink has to called before because
-            boost::filesystem::is_directory is also true on symlinks
-        */
-        /* if - directory selected & which type*/
-        if (boost::filesystem::is_symlink(selected_entry))
+            /* end for - iterate over content_current_dir */
+        });
+    UI::Component preview_tab(
+        50, 0, 50, 100,
+        [&](const UI::Component& self) -> void
         {
-            descriptor.append("l");
-        }
-        else if (directory_selected) // Could also just call boost::filesystem::is_directory
-        {
-            descriptor.append("d");
-        }
-        else
-        {
-            descriptor.append("-");
-        }
-        /* end if - directory selected & which type*/
+            uint32_t line_cnt = 0;
 
-        boost::filesystem::perms perms = boost::filesystem::status(selected_entry).permissions();
+            /* move the cursor to the origin */
+            auto origin = self.get_render_origin_coords();
+            auto limit = self.get_render_limit_coords();
+            cursor.move_abs(origin.x, origin.y);
 
-        /* for - iterate over owner, group and others */
-        for (int32_t i = 100; i >= 1; i /= 10)
-        {
-            /*
-                0x4 - Read
-                0x2 - Write
-                0x1 - Execute
-             */
-            /* extract digit */
-            uint32_t digit = (perms / i) % 10;
-
-            /* test for permissions */
-            (digit & 0x4) ? descriptor.append("r") : descriptor.append("-");
-            (digit & 0x2) ? descriptor.append("w") : descriptor.append("-");
-            (digit & 0x1) ? descriptor.append("x") : descriptor.append("-");
-        }
-        /* end for - iterate over owner, group and others */
-
-        /* get number of symbolic links or directories inside of directory */
-        uint64_t child_sym_dir_cnt = 0;
-
-        /* for - interate over every entry in selected entry */
-        for (auto&& child : content_child_dir)
-        {
-            /* if - is child dir or sym */
-            if (boost::filesystem::is_directory(child) || boost::filesystem::is_symlink(child))
-            {
-                child_sym_dir_cnt++;
-            }
-            /* end if - is child dir or sym */
-        }
-        /* end for - interate over every entry in selected entry */
-
-        descriptor.append(" " + std::to_string(child_sym_dir_cnt));
-
-        /* get the owner and group passed in entry */
-        auto [owner, group] = FS::get_dir_entry_group_owner(selected_entry, std::nullopt);
-        descriptor.append(" " + owner + " " + group);
-
-        /* if - directory selected & which type*/
-        if (boost::filesystem::is_symlink(selected_entry))
-        {
-            descriptor.append(" " + boost::filesystem::read_symlink(selected_entry).native());
-        }
-        else
-        {
+            /* if - is a directory currently selected */
             if (directory_selected)
             {
-                descriptor.append(" " + std::to_string(content_child_dir.size()));
+                /* for - iterate over every entry in the selected directory */
+                for (std::vector<boost::filesystem::path>::iterator it = content_child_dir.begin();
+                     it < content_child_dir.end(); it++)
+                {
+                    /* if - line limit reached */
+                    if (line_cnt > (limit.y - origin.y) - 2)
+                    {
+                        /* break in order to not overwrite the bottom bar */
+                        break;
+                    }
+                    /* end if - line limit reached */
+
+                    COLOR_SCHEME scheme = determin_COLOR_SCHEME(*it, *it == content_child_dir[0]);
+                    attron(COLOR_PAIR(scheme));
+                    addnstr(boost::filesystem::relative(*it, selected_entry).native().c_str(),
+                            limit.x);
+                    uint32_t path_length =
+                        boost::filesystem::relative(*it, selected_entry.parent_path())
+                            .native()
+                            .size();
+                    cursor.add_x(path_length);
+
+                    /* if - does the row have to filled */
+                    if (path_length < limit.x - origin.x)
+                    {
+                        /* for - print whitespaces */
+                        for (size_t i = path_length; i < limit.x - origin.x; i++)
+                        {
+                            addch(' ');
+                            cursor.add_x(1);
+                        }
+                        /* end for - print whitespaces */
+                    }
+                    /* end if - does the row have to filled */
+
+                    line_cnt++;
+
+                    /* re-adjust the cursor */
+                    cursor.move_abs(origin.x, it - content_child_dir.begin() + 1);
+                }
+                /* end for - iterate over every entry in the selected directory */
             }
             else
             {
-                auto [file_size_str, unit] =
-                    filesize_to_string(boost::filesystem::file_size(selected_entry));
-                descriptor.append(" " + file_size_str);
+                uint64_t line_cnt = 0, char_line_cnt = 0;
+
+                /* set the color mpde to default */
+                attron(COLOR_PAIR(COLOR_SCHEME::DEFAULT_TEXT));
+
+                /* for - iterate over every char in the preview */
+                for (auto&& ch : file_preview)
+                {
+                    /* if - screen already full */
+                    if (line_cnt > (limit.y - origin.y) - 2)
+                    {
+                        break;
+                    }
+                    /* end if - screen already full */
+
+                    /* if - char is line break */
+                    if (ch == '\n')
+                    {
+                        line_cnt++;
+                        char_line_cnt = 0;
+                        continue;
+                    }
+                    /* end if - char is line break */
+
+                    /* if - gonna overflow terminal */
+                    if (char_line_cnt > (limit.x - origin.x) - 1)
+                    {
+                        line_cnt++;
+                        char_line_cnt = 4;
+                    }
+                    /* end if - gonna overflow terminal */
+
+                    /* re-adjust the cursor */
+                    cursor.move_abs(origin.x + char_line_cnt, line_cnt);
+                    addch(ch);
+                    char_line_cnt++;
+                    cursor.add_x(1);
+                }
+                /* end for - iterate over every char in the preview */
             }
-        }
-        /* end if - directory selected & which type*/
+            /* end if - is a directory currently selected */
+        });
+    UI::Component bottom_bar(
+        0, 100, 100, 0,
+        [&](const UI::Component& self) -> void
+        {
+            std::string descriptor = "";
 
-        /* append last time edited */
-        char buffer[50] = {0};
-        std::time_t last_write = boost::filesystem::last_write_time(selected_entry);
-        struct tm* timeinfo = std::localtime(&last_write);
-        strftime(buffer, 50, "%Y-%m-%d %H:%M", timeinfo);
-        descriptor.append(" " + std::string(buffer));
+            /* move the cursor to the origin */
+            auto origin = self.get_render_origin_coords();
+            cursor.move_abs(origin.x, origin.y - 1);
 
-        /* print descriptor */
-        attron(COLOR_PAIR(COLOR_SCHEME::DEFAULT_TEXT));
-        printw("%s", descriptor.c_str());
-        cursor.add_x(descriptor.size());
-    });
-    UI::Component menu_selection(0, 0, 20, 100, [&](const UI::Component& self) -> void {
-        auto origin = self.get_render_origin_coords();
-        auto limit = self.get_render_limit_coords();
-        cursor.move_abs(origin.x, origin.y);
-        addnstr("Help", limit.x - origin.x);
-        cursor.move_abs(origin.x, origin.y + 1);
-        addnstr("Syntax highlighting", limit.x - origin.x);
-        cursor.move_abs(origin.x, origin.y + 1);
-    });
-    UI::Component menu_settings_tabs(20, 0, 80, 100, [&](const UI::Component& self) -> void {
-        auto origin = self.get_render_origin_coords();
-        auto limit = self.get_render_limit_coords();
-        cursor.move_abs(origin.x, origin.y);
-        printw("Menu settings");
-    });
+            /*
+                is_symblink has to called before because
+                boost::filesystem::is_directory is also true on symlinks
+            */
+            /* if - directory selected & which type*/
+            if (boost::filesystem::is_symlink(selected_entry))
+            {
+                descriptor.append("l");
+            }
+            else if (directory_selected) // Could also just call boost::filesystem::is_directory
+            {
+                descriptor.append("d");
+            }
+            else
+            {
+                descriptor.append("-");
+            }
+            /* end if - directory selected & which type*/
+
+            boost::filesystem::perms perms =
+                boost::filesystem::status(selected_entry).permissions();
+
+            /* for - iterate over owner, group and others */
+            for (int32_t i = 100; i >= 1; i /= 10)
+            {
+                /*
+                    0x4 - Read
+                    0x2 - Write
+                    0x1 - Execute
+                 */
+                /* extract digit */
+                uint32_t digit = (perms / i) % 10;
+
+                /* test for permissions */
+                (digit & 0x4) ? descriptor.append("r") : descriptor.append("-");
+                (digit & 0x2) ? descriptor.append("w") : descriptor.append("-");
+                (digit & 0x1) ? descriptor.append("x") : descriptor.append("-");
+            }
+            /* end for - iterate over owner, group and others */
+
+            /* get number of symbolic links or directories inside of directory */
+            uint64_t child_sym_dir_cnt = 0;
+
+            /* for - interate over every entry in selected entry */
+            for (auto&& child : content_child_dir)
+            {
+                /* if - is child dir or sym */
+                if (boost::filesystem::is_directory(child) || boost::filesystem::is_symlink(child))
+                {
+                    child_sym_dir_cnt++;
+                }
+                /* end if - is child dir or sym */
+            }
+            /* end for - interate over every entry in selected entry */
+
+            descriptor.append(" " + std::to_string(child_sym_dir_cnt));
+
+            /* get the owner and group passed in entry */
+            auto [owner, group] = FS::get_dir_entry_group_owner(selected_entry, std::nullopt);
+            descriptor.append(" " + owner + " " + group);
+
+            /* if - directory selected & which type*/
+            if (boost::filesystem::is_symlink(selected_entry))
+            {
+                descriptor.append(" " + boost::filesystem::read_symlink(selected_entry).native());
+            }
+            else
+            {
+                if (directory_selected)
+                {
+                    descriptor.append(" " + std::to_string(content_child_dir.size()));
+                }
+                else
+                {
+                    auto [file_size_str, unit] =
+                        filesize_to_string(boost::filesystem::file_size(selected_entry));
+                    descriptor.append(" " + file_size_str);
+                }
+            }
+            /* end if - directory selected & which type*/
+
+            /* append last time edited */
+            char buffer[50] = {0};
+            std::time_t last_write = boost::filesystem::last_write_time(selected_entry);
+            struct tm* timeinfo = std::localtime(&last_write);
+            strftime(buffer, 50, "%Y-%m-%d %H:%M", timeinfo);
+            descriptor.append(" " + std::string(buffer));
+
+            /* print descriptor */
+            attron(COLOR_PAIR(COLOR_SCHEME::DEFAULT_TEXT));
+            printw("%s", descriptor.c_str());
+            cursor.add_x(descriptor.size());
+        });
 
     /* cache the id of each component */
-    menu_selection_id = menu_selection.get_id();
-    menu_settings_tabs_id = menu_settings_tabs.get_id();
     parent_tree_id = parent_tree.get_id();
     current_tree_id = current_tree.get_id();
     preview_id = preview_tab.get_id();
     bottom_bar_id = bottom_bar.get_id();
 
     /* create the component tree and add all components */
-    ui_tree.add_comp(parent_tree)
-        .add_comp(current_tree)
-        .add_comp(preview_tab)
-        .add_comp(bottom_bar)
-        .add_comp(menu_selection)
-        .add_comp(menu_settings_tabs);
-
-    /* deactivate the menu */
-    ui_tree.disable_by_id(menu_selection_id).disable_by_id(menu_settings_tabs_id);
+    ui_tree.add_comp(parent_tree).add_comp(current_tree).add_comp(preview_tab).add_comp(bottom_bar);
 }
 
 int32_t Application::loop()
 {
     bool should_close = false;
-    bool should_menu_render = false;
 
     /* while - application loop */
     while (!should_close)
@@ -703,199 +695,161 @@ int32_t Application::loop()
         /* get console input */
         input.fetch();
 
-        if (should_menu_render)
+        /* if - was enter or l pressed */
+        if (input.key_pressed_input(LF) || input.key_pressed_input(L_LOWER) ||
+            input.key_pressed_input(L_UPPER))
         {
-            if (input.key_pressed_input(LF))
+            /* if - is the current selected entry a directory */
+            if (directory_selected)
             {
-                should_menu_render = false;
-                ui_tree.enable_by_id(parent_tree_id)
-                    .enable_by_id(current_tree_id)
-                    .enable_by_id(preview_id)
-                    .enable_by_id(bottom_bar_id);
-                ui_tree.disable_by_id(menu_selection_id).disable_by_id(menu_settings_tabs_id);
-                m_window.clear_scr();
-            }
-            /* if - was ESC or q pressed */
-            if (input.key_pressed_input(ESC) || input.key_pressed_input(Q_LOWER) ||
-                input.key_pressed_input(Q_UPPER))
-            {
-                should_close = true;
-            }
-            /* end if - was ESC pressed */
-        }
-        else
-        {
-            /* if - was enter or l pressed */
-            if (input.key_pressed_input(LF) || input.key_pressed_input(L_LOWER) ||
-                input.key_pressed_input(L_UPPER))
-            {
-                /* if - is the current selected entry a directory */
-                if (directory_selected)
+                /* current content => parent content */
+                content_parent_dir = content_current_dir;
+
+                /* child content => current content */
+                content_current_dir = content_child_dir;
+
+                /* prev selected entry to current dir */
+                current_dir = boost::filesystem::path(selected_entry);
+
+                /* always select the first entry */
+                selected_entry = content_current_dir[0];
+                selected_entry_index = 0;
+
+                /* if - entry directory */
+                if (boost::filesystem::is_directory(selected_entry))
                 {
-                    /* current content => parent content */
-                    content_parent_dir = content_current_dir;
-
-                    /* child content => current content */
-                    content_current_dir = content_child_dir;
-
-                    /* prev selected entry to current dir */
-                    current_dir = boost::filesystem::path(selected_entry);
-
-                    /* always select the first entry */
-                    selected_entry = content_current_dir[0];
-                    selected_entry_index = 0;
-
-                    /* if - entry directory */
-                    if (boost::filesystem::is_directory(selected_entry))
-                    {
-                        content_child_dir = FS::get_dir_content(selected_entry, std::nullopt);
-                        directory_selected = true;
-                    }
-                    else
-                    {
-                        file_preview.clear();
-                        file_preview = FS::get_file_content_n(selected_entry, 5000, std::nullopt);
-                        directory_selected = false;
-                    }
-                    /* end if - entry directory */
+                    content_child_dir = FS::get_dir_content(selected_entry, std::nullopt);
+                    directory_selected = true;
                 }
-                /* end if - is the current selected entry a directory */
+                else
+                {
+                    file_preview.clear();
+                    file_preview = FS::get_file_content_n(selected_entry, 5000, std::nullopt);
+                    directory_selected = false;
+                }
+                /* end if - entry directory */
+            }
+            /* end if - is the current selected entry a directory */
+
+            /* clear screen to re-render */
+            m_window.clear_scr();
+        }
+        /* end if - was enter or l pressed */
+
+        /* if - was h pressed */
+        if (input.key_pressed_input(H_LOWER) || input.key_pressed_input(H_UPPER))
+        {
+            /* if - has the current directory a parent directory */
+            if (current_dir.has_parent_path())
+            {
+                /* current content  => child content */
+                content_child_dir = content_current_dir;
+                /* parent content  => current content */
+                content_current_dir = content_parent_dir;
+
+                /* can only be parented by directory */
+                directory_selected = true;
+
+                /* prev. parent must be selected */
+                selected_entry = selected_entry.parent_path();
+                current_dir = current_dir.parent_path();
+
+                /* get parent content*/
+                content_parent_dir = FS::get_dir_content(current_dir.parent_path(), std::nullopt);
+
+                /* for - iterate over new current content */
+                for (std::vector<boost::filesystem::path>::iterator it =
+                         content_current_dir.begin();
+                     it < content_current_dir.end(); it++)
+                {
+                    /* find new selected entry and get index */
+                    auto found_iter = std::find(content_current_dir.begin(),
+                                                content_current_dir.end(), selected_entry);
+                    selected_entry_index = found_iter - content_current_dir.begin();
+                }
+                /* end for - iterate over new current content */
 
                 /* clear screen to re-render */
                 m_window.clear_scr();
             }
-            /* end if - was enter or l pressed */
+            /* end if - has the current directory a parent directory */
+        }
+        /* end if - was h pressed */
 
-            /* if - was h pressed */
-            if (input.key_pressed_input(H_LOWER) || input.key_pressed_input(H_UPPER))
+        /* if - was j pressed */
+        if (input.key_pressed_input(J_LOWER) || input.key_pressed_input(J_UPPER))
+        {
+            /* if - stay inbounds of the content_current_dir vector */
+            if (selected_entry_index < content_current_dir.size() - 1)
             {
-                /* if - has the current directory a parent directory */
-                if (current_dir.has_parent_path())
+                /* move down in tree */
+                selected_entry = content_current_dir[selected_entry_index + 1];
+                selected_entry_index++;
+
+                /* determine if directoryy selected */
+                directory_selected = boost::filesystem::is_directory(selected_entry) ? true : false;
+
+                /* if - directory selected */
+                if (directory_selected)
                 {
-                    /* current content  => child content */
-                    content_child_dir = content_current_dir;
-                    /* parent content  => current content */
-                    content_current_dir = content_parent_dir;
-
-                    /* can only be parented by directory */
-                    directory_selected = true;
-
-                    /* prev. parent must be selected */
-                    selected_entry = selected_entry.parent_path();
-                    current_dir = current_dir.parent_path();
-
-                    /* get parent content*/
-                    content_parent_dir =
-                        FS::get_dir_content(current_dir.parent_path(), std::nullopt);
-
-                    /* for - iterate over new current content */
-                    for (std::vector<boost::filesystem::path>::iterator it =
-                             content_current_dir.begin();
-                         it < content_current_dir.end(); it++)
-                    {
-                        /* find new selected entry and get index */
-                        auto found_iter = std::find(content_current_dir.begin(),
-                                                    content_current_dir.end(), selected_entry);
-                        selected_entry_index = found_iter - content_current_dir.begin();
-                    }
-                    /* end for - iterate over new current content */
-
-                    /* clear screen to re-render */
-                    m_window.clear_scr();
+                    content_child_dir = FS::get_dir_content(selected_entry, std::nullopt);
                 }
-                /* end if - has the current directory a parent directory */
-            }
-            /* end if - was h pressed */
-
-            /* if - was j pressed */
-            if (input.key_pressed_input(J_LOWER) || input.key_pressed_input(J_UPPER))
-            {
-                /* if - stay inbounds of the content_current_dir vector */
-                if (selected_entry_index < content_current_dir.size() - 1)
+                else
                 {
-                    /* move down in tree */
-                    selected_entry = content_current_dir[selected_entry_index + 1];
-                    selected_entry_index++;
-
-                    /* determine if directoryy selected */
-                    directory_selected =
-                        boost::filesystem::is_directory(selected_entry) ? true : false;
-
-                    /* if - directory selected */
-                    if (directory_selected)
-                    {
-                        content_child_dir = FS::get_dir_content(selected_entry, std::nullopt);
-                    }
-                    else
-                    {
-                        /* try to get preview of text-file */
-                        file_preview.clear();
-                        file_preview = FS::get_file_content_n(selected_entry, 5000, std::nullopt);
-                    }
-                    /* end if - directory selected */
-
-                    /* clear screen to re-render */
-                    m_window.clear_scr();
+                    /* try to get preview of text-file */
+                    file_preview.clear();
+                    file_preview = FS::get_file_content_n(selected_entry, 5000, std::nullopt);
                 }
-                /* end if - stay inbounds of the content_current_dir vector */
-            }
-            /* end if - was j pressed */
+                /* end if - directory selected */
 
-            /* end if - was k pressed */
-            if (input.key_pressed_input(K_LOWER) || input.key_pressed_input(K_UPPER))
-            {
-                /* if - stay inbounds of the content_current_dir vector */
-                if (selected_entry_index > 0)
-                {
-                    /* move up in tree */
-                    selected_entry = content_current_dir[selected_entry_index - 1];
-                    selected_entry_index--;
-
-                    /* determine if directoryy selected */
-                    directory_selected =
-                        boost::filesystem::is_directory(selected_entry) ? true : false;
-
-                    /* if - directory selected */
-                    if (directory_selected)
-                    {
-                        content_child_dir = FS::get_dir_content(selected_entry, std::nullopt);
-                    }
-                    else
-                    {
-                        /* try to get preview of text-file */
-                        file_preview.clear();
-                        file_preview = FS::get_file_content_n(selected_entry, 5000, std::nullopt);
-                    }
-                    /* end if - directory selected */
-
-                    /* clear screen to re-render */
-                    m_window.clear_scr();
-                }
-                /* end if - stay inbounds of the content_current_dir vector */
-            }
-            /* end if - was k pressed */
-
-            /* if - was ESC pressed */
-            if (input.key_pressed_input(ESC))
-            {
-                should_menu_render = true;
-                ui_tree.disable_by_id(parent_tree_id)
-                    .disable_by_id(current_tree_id)
-                    .disable_by_id(preview_id)
-                    .disable_by_id(bottom_bar_id);
-                ui_tree.enable_by_id(menu_selection_id);
-                ui_tree.enable_by_id(menu_settings_tabs_id);
+                /* clear screen to re-render */
                 m_window.clear_scr();
             }
-            /* end if - was ESC pressed */
-
-            /* if - was Q pressed */
-            if (input.key_pressed_input(Q_LOWER) || input.key_pressed_input(Q_UPPER))
-            {
-                should_close = true;
-            }
-            /* end if - was Q pressed */
+            /* end if - stay inbounds of the content_current_dir vector */
         }
+        /* end if - was j pressed */
+
+        /* end if - was k pressed */
+        if (input.key_pressed_input(K_LOWER) || input.key_pressed_input(K_UPPER))
+        {
+            /* if - stay inbounds of the content_current_dir vector */
+            if (selected_entry_index > 0)
+            {
+                /* move up in tree */
+                selected_entry = content_current_dir[selected_entry_index - 1];
+                selected_entry_index--;
+
+                /* determine if directoryy selected */
+                directory_selected = boost::filesystem::is_directory(selected_entry) ? true : false;
+
+                /* if - directory selected */
+                if (directory_selected)
+                {
+                    content_child_dir = FS::get_dir_content(selected_entry, std::nullopt);
+                }
+                else
+                {
+                    /* try to get preview of text-file */
+                    file_preview.clear();
+                    file_preview = FS::get_file_content_n(selected_entry, 5000, std::nullopt);
+                }
+                /* end if - directory selected */
+
+                /* clear screen to re-render */
+                m_window.clear_scr();
+            }
+            /* end if - stay inbounds of the content_current_dir vector */
+        }
+        /* end if - was k pressed */
+
+        /* if - was Q pressed */
+        if (input.key_pressed_input(ESC) || input.key_pressed_input(Q_LOWER) ||
+            input.key_pressed_input(Q_UPPER))
+        {
+            should_close = true;
+        }
+        /* end if - was Q pressed */
+
         /* if - was the window resized */
         if (m_window.was_resized())
         {
